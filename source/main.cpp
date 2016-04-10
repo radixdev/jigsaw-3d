@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     CompFab::Vec3 direction2(0.0, 1.0, 0.0);
     CompFab::Vec3 direction3(0.0, 0.0, 1.0);
 
-    if (std::string(argv[3]) == "--multidir") {
+    if (argv[3] && std::string(argv[3]) == "--multidir") {
         for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
             for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
                 for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {

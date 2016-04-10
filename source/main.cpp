@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>    // std::min
+#include <string>
 #include "../include/CompFab.h"
 #include "../include/Mesh.h"
 
@@ -143,7 +144,11 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface)
     for (int ii = 0; ii < nx; ii++) {
         for (int jj = 0; jj < ny; jj++) {
             for (int kk = 0; kk < nz; kk++) {
-                if(!g_voxelGrid->isInside(ii,jj,kk) && !(!checkSurface or g_voxelGrid -> isOnSurface(ii, jj, kk))){
+                if(!g_voxelGrid->isInside(ii,jj,kk)){
+                    continue;
+                }
+
+                if(checkSurface && !g_voxelGrid -> isOnSurface(ii, jj, kk)) {
                     continue;
                 }
                 CompFab::Vec3 coord(0.5f + ((double)ii)*spacing, 0.5f + ((double)jj)*spacing, 0.5f+((double)kk)*spacing);
@@ -155,6 +160,7 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface)
         }
     }
 
+    std::cout << "saving: " << outfile << std::endl;
     mout.save_obj(outfile);
 }
 
@@ -162,7 +168,7 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface)
 int main(int argc, char **argv)
 {
 
-    unsigned int dim = 16; //dimension of voxel grid (e.g. 32x32x32)
+    unsigned int dim = 32   ; //dimension of voxel grid (e.g. 32x32x32)
 
     //Load OBJ
     if(argc < 3)
@@ -254,16 +260,15 @@ int main(int argc, char **argv)
 
                     g_voxelGrid -> m_surfaceArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = !(left && right && top && bottom && fwd && bck);
 
-                } else {
-                    g_voxelGrid -> m_surfaceArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = false;
-                }
+                } 
             }
         }
     }
 
     std::cout << "finished surface analysis" << std::endl;
 
-    std::string surfacefile = "surface" + std::string(argv[2]);
+    std::string surfacefile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_surface.obj";
+    std::cout << surfacefile << std::endl;
 
     saveVoxelsToObj(surfacefile.c_str(), true);
 

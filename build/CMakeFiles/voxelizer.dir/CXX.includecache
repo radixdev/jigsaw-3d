@@ -25,6 +25,8 @@ iostream
 -
 vector
 -
+algorithm
+-
 ../include/CompFab.h
 /home/tricias/Github/jigsaw-3d/include/CompFab.h
 ../include/Mesh.h

@@ -130,10 +130,13 @@ namespace CompFab
             m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
         }      
 
-        inline bool & isOnSurface(unsigned int i, unsigned int j, unsigned int k)
-        {
+        inline bool & isOnSurface(unsigned int i, unsigned int j, unsigned int k) {
             return m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
         }
+
+        inline void setOnSurface(unsigned int i, unsigned int j, unsigned int k) {
+            m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
+        }  
         bool *m_insideArray;
         bool *m_surfaceArray;
         unsigned int m_dimX, m_dimY, m_dimZ, m_size;

@@ -250,13 +250,13 @@ int main(int argc, char **argv)
         for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
             for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
                 // only do this if we have a solid piece, not air
-                if (g_voxelGrid -> isInside(i, j, k)) {
-                    left = g_voxelGrid -> isInside(std::max(0, i-1), j, k);
-                    right = g_voxelGrid -> isInside(std::min((int) g_voxelGrid -> m_dimX -1, i+1), j, k);
-                    top = g_voxelGrid -> isInside(i, std::max(0, j-1), k);
-                    bottom = g_voxelGrid -> isInside(i, std::min((int) g_voxelGrid -> m_dimY -1, j+1), k);
-                    fwd = g_voxelGrid -> isInside(i, j, std::max(0, k-1));
-                    bck = g_voxelGrid -> isInside(i, j, std::min((int) g_voxelGrid -> m_dimZ -1, k+1));
+                if (g_voxelGrid->isInside(i, j, k)) {
+                    left = g_voxelGrid->isInside(std::max(0, i-1), j, k);
+                    right = g_voxelGrid->isInside(std::min((int) g_voxelGrid -> m_dimX -1, i+1), j, k);
+                    top = g_voxelGrid->isInside(i, std::max(0, j-1), k);
+                    bottom = g_voxelGrid->isInside(i, std::min((int) g_voxelGrid -> m_dimY -1, j+1), k);
+                    fwd = g_voxelGrid->isInside(i, j, std::max(0, k-1));
+                    bck = g_voxelGrid->isInside(i, j, std::min((int) g_voxelGrid -> m_dimZ -1, k+1));
 
                     g_voxelGrid -> m_surfaceArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = !(left && right && top && bottom && fwd && bck);
 

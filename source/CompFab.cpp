@@ -133,10 +133,12 @@ CompFab::VoxelGridStruct::VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, uns
     
     //Allocate Memory
     m_insideArray = new bool[m_size];
+    m_surfaceArray = new bool[m_size];
     
     for(unsigned int ii=0; ii<m_size; ++ii)
     {
         m_insideArray[ii] = false;
+        m_surfaceArray[ii] = false;
     }
     
 }

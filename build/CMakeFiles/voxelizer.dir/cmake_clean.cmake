@@ -1,9 +1,11 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/voxelizer.dir/source/Mesh.cpp.o"
-  "CMakeFiles/voxelizer.dir/source/CompFab.cpp.o"
-  "CMakeFiles/voxelizer.dir/source/main.cpp.o"
+  "CMakeFiles/voxelizer.dir/source/CompFab.cpp.obj"
+  "CMakeFiles/voxelizer.dir/source/main.cpp.obj"
+  "CMakeFiles/voxelizer.dir/source/Mesh.cpp.obj"
   "voxelizer.pdb"
-  "voxelizer"
+  "voxelizer.exe"
+  "voxelizer.exe.manifest"
+  "libvoxelizer.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

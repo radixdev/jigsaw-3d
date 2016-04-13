@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/cmake,c++,osx
 
 ### CMake ###
@@ -68,3 +67,11 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+
+# julian- exclude parts of the data folder
+data/
+!data/bunny/bunny.obj
+!data/teapot/teapot.obj
+!data/sphere/sphere.obj
+!data/sphere/sphere.mtl

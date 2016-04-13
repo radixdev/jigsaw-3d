@@ -118,14 +118,17 @@ namespace CompFab
         VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, unsigned int dimY, unsigned int dimZ, double spacing);
         ~VoxelGridStruct();
 
-        inline bool & isInside(int ii, int jj, int kk)
-        {
+        inline bool & isInside(int ii, int jj, int kk) {
             unsigned int i = (unsigned int) ii;
             unsigned int j = (unsigned int) jj;
             unsigned int k = (unsigned int) kk;
             
             return m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
-        }        
+        }  
+
+        inline void setIsInside(unsigned int i, unsigned int j, unsigned int k) {
+            m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
+        }      
 
         inline bool & isOnSurface(unsigned int i, unsigned int j, unsigned int k)
         {

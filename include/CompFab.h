@@ -145,6 +145,27 @@ namespace CompFab
             m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = pieceNum;
         }  
 
+        inline int getArrayIndexByCoordinate(unsigned int i, unsigned int j, unsigned int k) {
+            return k*(m_dimX*m_dimY)+j*m_dimY + i;
+        }
+
+        // colors
+        inline double getVoxelColor_r(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3];
+        }
+        inline double getVoxelColor_g(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1];
+        }
+        inline double getVoxelColor_b(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2];
+        }
+
+        inline void setVoxelColor(unsigned int i, unsigned int j, unsigned int k, double r, double g, double b) {
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3] = r;
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1] = g;
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2] = b;
+        }
+
         bool *m_insideArray;
         bool *m_surfaceArray;
         unsigned int m_dimX, m_dimY, m_dimZ, m_size;
@@ -155,7 +176,8 @@ namespace CompFab
         unsigned int *m_pieceNumArray;
 
         // color info
-        double m_color_r, m_color_g, m_color_b;
+        // 3* # vertices for (r,g,b)
+        double *m_color_array;
         
     } VoxelGrid;
 }

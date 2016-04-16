@@ -1,10 +1,16 @@
-//Computational Fabrication Assignment #1
 #include <iostream>
 #include <vector>
 #include <algorithm>    // std::min
 #include <string>
+#include <stdlib.h>
 #include "../include/CompFab.h"
 #include "../include/Mesh.h"
+
+
+double getRandomColor() {
+    int resolution =  100;
+    return ((double)(rand() % resolution)) / ((double) resolution);
+}
 
 //Ray-Triangle Intersection
 //Returns 1 if triangle and ray intersect, 0 otherwise
@@ -129,8 +135,11 @@ bool loadMesh(char *filename, unsigned int dim)
    
 }
 
-void saveVoxelsToObj(const char * outfile, const bool checkSurface)
-{
+
+/**
+saveWithColors -> save to the outfile using the voxel's set color parameter
+**/
+void saveVoxelsToObj(const char * outfile, const bool checkSurface, const bool saveWithColors) {
  
     Mesh box;
     Mesh mout;
@@ -154,7 +163,12 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface)
                 CompFab::Vec3 coord(0.5f + ((double)ii)*spacing, 0.5f + ((double)jj)*spacing, 0.5f+((double)kk)*spacing);
                 CompFab::Vec3 box0 = coord - hspacing;
                 CompFab::Vec3 box1 = coord + hspacing;
-                makeCube(box, box0, box1, 0.0, ((double) kk)/((double)nz), 0.0);
+                if (saveWithColors) {
+                    makeCube(box, box0, box1, g_voxelGrid->getVoxelColor_r(ii,jj,kk), g_voxelGrid->getVoxelColor_g(ii,jj,kk), g_voxelGrid->getVoxelColor_b(ii,jj,kk));
+                } else {
+                    // default drab grey if not saving with colors
+                    makeCube(box, box0, box1, 0.5, 0.5, 0.5);
+                }
                 mout.append(box);
             }
         }
@@ -241,7 +255,7 @@ int main(int argc, char **argv)
     
     std::cout << "finished initial lloop" << std::endl;
     //Write out voxel data as obj
-    saveVoxelsToObj(argv[2], false);
+    saveVoxelsToObj(argv[2], false, false);
 
     std::cout << "starting surface analysis" << std::endl;
     bool top, bottom, left, right, fwd, bck;
@@ -272,7 +286,7 @@ int main(int argc, char **argv)
     std::string surfacefile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_surface.obj";
     std::cout << surfacefile << std::endl;
 
-    saveVoxelsToObj(surfacefile.c_str(), true);
+    saveVoxelsToObj(surfacefile.c_str(), true, false);
 
     std::cout << "starting divisions" << std::endl;
     unsigned int PIECE_SIZE = 10;
@@ -287,6 +301,12 @@ int main(int argc, char **argv)
                     newz = k/PIECE_SIZE;
                     pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
                     g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
+
+                    // setting the voxel color here
+                    unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
+                    srand(pieceNum);
+
+                    g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
                 } 
             }
         }
@@ -295,7 +315,6 @@ int main(int argc, char **argv)
     std::string dividedfile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_divided.obj";
     std::cout << dividedfile << std::endl;
 
-    // TODO: (julian) write the code to save the colors here!
-
+    saveVoxelsToObj(dividedfile.c_str(), true, true);
     delete g_voxelGrid;
 }

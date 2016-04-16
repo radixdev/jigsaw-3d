@@ -212,7 +212,7 @@ int main(int argc, char **argv)
 
                     if (intersectionNum % 2 == 1 && intersectionNum2 % 2 == 1 && intersectionNum3 % 2 == 1) {
                         // odd -> inside
-                        g_voxelGrid -> m_insideArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = true;
+                        g_voxelGrid->setIsInside(i,j,k);
                     }
                 }
             }
@@ -232,7 +232,6 @@ int main(int argc, char **argv)
                     int intersectionNum = numSurfaceIntersections(voxelPos, direction);
                     if (intersectionNum % 2 == 1) {
                         // odd -> inside
-                        // g_voxelGrid -> m_insideArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = true;
                         g_voxelGrid->setIsInside(i,j,k);
                     }
                 }
@@ -259,7 +258,6 @@ int main(int argc, char **argv)
                     fwd = g_voxelGrid->isInside(i, j, std::max(0, k-1));
                     bck = g_voxelGrid->isInside(i, j, std::min((int) g_voxelGrid -> m_dimZ -1, k+1));
 
-                    // g_voxelGrid -> m_surfaceArray[k*(g_voxelGrid -> m_dimX*g_voxelGrid -> m_dimY)+j*g_voxelGrid -> m_dimY + i] = !(left && right && top && bottom && fwd && bck);
                     if (!(left && right && top && bottom && fwd && bck)) {
                         g_voxelGrid->setOnSurface(i,j,k);
                     }

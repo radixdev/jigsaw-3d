@@ -116,6 +116,8 @@ void Mesh::save(std::ostream & out, std::vector<CompFab::Vec3> * vert)
     vert = &v;
   }
   for(size_t ii=0;ii<vert->size();ii++){
+    // example line below to turn a voxel blue
+    // out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<" 0.0 0.0 1.0\n";
     out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<"\n";
   }
   if(tex.size()>0){

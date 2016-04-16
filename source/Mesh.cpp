@@ -284,8 +284,7 @@ void Mesh::read_ply(std::istream & f)
   }
 }
 
-void Mesh::save_obj(const char * filename)
-{
+void Mesh::save_obj(const char * filename) {
   std::ofstream out(filename);
   if(!out.good()){
     std::cout<<"cannot open output file"<<filename<<"\n";

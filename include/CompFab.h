@@ -112,8 +112,7 @@ namespace CompFab
     
     
     //Grid structure for Voxels
-    typedef struct VoxelGridStruct
-    {
+    typedef struct VoxelGridStruct {
         //Square voxels only
         VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, unsigned int dimY, unsigned int dimZ, double spacing);
         ~VoxelGridStruct();
@@ -142,6 +141,9 @@ namespace CompFab
         unsigned int m_dimX, m_dimY, m_dimZ, m_size;
         double m_spacing;
         Vec3 m_lowerLeft;
+
+        // color info
+        double m_color_r, m_color_g, m_color_b;
         
     } VoxelGrid;
 }

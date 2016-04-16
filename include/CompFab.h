@@ -11,6 +11,8 @@
 #define EPSILON 1e-9
 
 #include <cmath>
+#include <map>
+#include <vector>
 
 namespace CompFab
 {
@@ -165,6 +167,7 @@ namespace CompFab
             m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1] = g;
             m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2] = b;
         }
+        // updatePiecesFromPuzzle(Puzzle) // should change pieceNumArray to be the same as the puzzle structure.
 
         bool *m_insideArray;
         bool *m_surfaceArray;
@@ -180,6 +183,46 @@ namespace CompFab
         double *m_color_array;
         
     } VoxelGrid;
+
+    // A single piece
+    typedef struct PuzzlePieceStruct {
+        //Square voxels only
+        PuzzlePieceStruct();
+        ~PuzzlePieceStruct();
+
+        // get_voxels()
+
+        // add_voxels(Vec3i[])
+
+        // remove_voxels(Vec3i[])
+
+        // based on location, should be newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx
+        unsigned int m_id;
+        // keeps track of the voxels inside in (i, j, k)
+        std::vector<Vec3i> m_voxels;
+        
+    } PuzzlePiece;
+
+    // A puzzle with a lot of pieces
+    typedef struct PuzzleStruct {
+        //Square voxels only
+        PuzzleStruct();
+        ~PuzzleStruct();
+
+        // get_pieces()
+
+        // add_piece(id, PuzzlePiece)
+
+        // remove_piece(id)
+
+        // has_piece_at(i, j, k)
+
+        // merge_pieces(id1, id2)
+
+
+        std::map<unsigned int, PuzzlePiece> m_pieceList;
+        
+    } Puzzle;
 }
 
 

@@ -153,8 +153,33 @@ CompFab::VoxelGridStruct::VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, uns
 CompFab::VoxelGridStruct::~VoxelGridStruct()
 {
     delete[] m_insideArray;
+    delete[] m_surfaceArray;    
+    delete[] m_pieceNumArray;
 }
 
+//Class structure for puzzle pieces
+CompFab::PuzzlePieceStruct::PuzzlePieceStruct()
+{
+    return;
+    
+}
+
+CompFab::PuzzlePieceStruct::~PuzzlePieceStruct()
+{
+    return;
+}
+
+//Class structure for puzzles
+CompFab::PuzzleStruct::PuzzleStruct()
+{
+    return;
+    
+}
+
+CompFab::PuzzleStruct::~PuzzleStruct()
+{
+    return;
+}
 
 
 

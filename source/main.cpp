@@ -274,5 +274,28 @@ int main(int argc, char **argv)
 
     saveVoxelsToObj(surfacefile.c_str(), true);
 
+    std::cout << "starting divisions" << std::endl;
+    unsigned int PIECE_SIZE = 10;
+    unsigned int newx, newy, newz, pieceNum;
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                // only do this if we have a solid piece, not air
+                if (g_voxelGrid->isOnSurface(i, j, k)) {
+                    newx = i/PIECE_SIZE;
+                    newy = j/PIECE_SIZE;
+                    newz = k/PIECE_SIZE;
+                    pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
+                    g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
+                } 
+            }
+        }
+    }
+    std::cout << "ending divisions" << std::endl;
+    std::string dividedfile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_divided.obj";
+    std::cout << dividedfile << std::endl;
+
+    // TODO: (julian) write the code to save the colors here!
+
     delete g_voxelGrid;
 }

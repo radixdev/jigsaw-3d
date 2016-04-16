@@ -134,10 +134,12 @@ CompFab::VoxelGridStruct::VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, uns
     //Allocate Memory
     m_insideArray = new bool[m_size];
     m_surfaceArray = new bool[m_size];
+    m_pieceNumArray = new unsigned int[m_size];
 
     for(unsigned int ii=0; ii<m_size; ++ii) {
         m_insideArray[ii] = false;
         m_surfaceArray[ii] = false;
+        m_pieceNumArray[ii] = 0;
 
         // colors
         m_color_r = 0.1;

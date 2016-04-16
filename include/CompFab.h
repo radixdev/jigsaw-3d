@@ -136,11 +136,23 @@ namespace CompFab
         inline void setOnSurface(unsigned int i, unsigned int j, unsigned int k) {
             m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
         }  
+
+        inline unsigned int & getPieceNum(unsigned int i, unsigned int j, unsigned int k) {
+            return m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
+        }
+
+        inline void setPieceNum(unsigned int i, unsigned int j, unsigned int k, unsigned int pieceNum) {
+            m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = pieceNum;
+        }  
+
         bool *m_insideArray;
         bool *m_surfaceArray;
         unsigned int m_dimX, m_dimY, m_dimZ, m_size;
         double m_spacing;
         Vec3 m_lowerLeft;
+
+        // piece numbers
+        unsigned int *m_pieceNumArray;
 
         // color info
         double m_color_r, m_color_g, m_color_b;

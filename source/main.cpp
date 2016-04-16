@@ -154,7 +154,7 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface)
                 CompFab::Vec3 coord(0.5f + ((double)ii)*spacing, 0.5f + ((double)jj)*spacing, 0.5f+((double)kk)*spacing);
                 CompFab::Vec3 box0 = coord - hspacing;
                 CompFab::Vec3 box1 = coord + hspacing;
-                makeCube(box, box0, box1);
+                makeCube(box, box0, box1, 0.0, ((double) kk)/((double)nz), 0.0);
                 mout.append(box);
             }
         }

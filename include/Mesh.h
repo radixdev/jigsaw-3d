@@ -14,6 +14,8 @@ public:
   std::vector<CompFab::Vec3i>texId;
   ///@brief triangles
   std::vector<CompFab::Vec3i>t;
+  // colors
+  std::vector<CompFab::Vec3>colors;
 
   Mesh();
   Mesh(const std::vector<CompFab::Vec3>&_v,
@@ -34,11 +36,14 @@ public:
   void compute_norm();
   void rescale();
   void append(const Mesh & m);
+  // void append(const Mesh & m, double color_r, double color_g, double color_b);
   Mesh & operator= (const Mesh& m);
   virtual void update();
 };
 void makeCube(Mesh & m, const CompFab::Vec3 & mn,
     const CompFab::Vec3 mx);
+void makeCube(Mesh & m, const CompFab::Vec3 & mn,
+    const CompFab::Vec3 mx, double color_r, double color_g, double color_b);
 ///@brief cube [0,1]^3
 extern Mesh UNIT_CUBE;
 void BBox(const Mesh & m, CompFab::Vec3 & mn,

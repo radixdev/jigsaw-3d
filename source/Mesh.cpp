@@ -41,11 +41,32 @@ void makeCube(Mesh & m, const CompFab::Vec3 & mn,
   }
 }
 
-void Mesh::append(const Mesh & m)
+void makeCube(Mesh & m, const CompFab::Vec3 & mn,
+    const CompFab::Vec3 mx, double color_r, double color_g, double color_b)
 {
+  CompFab::Vec3 ss = mx -mn;
+  m=UNIT_CUBE;
+
+  // std::cout << "v size " << m.v.size() << std::endl;
+  // std::cout << "colors size " << m.colors.size() << std::endl;
+  m.colors.resize(m.colors.size() + m.v.size());
+
+  for(unsigned int ii = 0;ii<m.v.size();ii++){
+    m.v[ii][0] = mn[0] + ss[0]*m.v[ii][0];
+    m.v[ii][1] = mn[1] + ss[1]*m.v[ii][1];
+    m.v[ii][2] = mn[2] + ss[2]*m.v[ii][2];
+
+    m.colors[ii][0] = color_r;
+    m.colors[ii][1] = color_g;
+    m.colors[ii][2] = color_b;
+  }
+}
+
+void Mesh::append(const Mesh & m) {
   unsigned int offset = v.size();
   unsigned int ot = t.size();
   v.insert(v.end(),m.v.begin(),m.v.end());
+  colors.insert(colors.end(),m.colors.begin(),m.colors.end());
   t.insert(t.end(),m.t.begin(), m.t.end());
   for(unsigned int ii = ot;ii<t.size();ii++){
     for(int jj = 0 ;jj<3;jj++){
@@ -57,6 +78,7 @@ void Mesh::append(const Mesh & m)
 Mesh & Mesh::operator= (const Mesh& m)
 {
   v = m.v;
+  colors = m.colors;
   t = m.t;
   n = m.n;
   return *this;
@@ -88,7 +110,7 @@ CompFab:: Vec3i(7, 4, 5),
 CompFab:: Vec3i(7, 5, 6)};
 Mesh UNIT_CUBE(CUBE_VERT,CUBE_TRIG);
 
-Mesh::Mesh():v(0),t(0){}
+Mesh::Mesh():v(0),t(0),colors(0){}
 
 Mesh::Mesh(const std::vector<CompFab::Vec3>&_v,
     const std::vector<CompFab::Vec3i>&_t):v(_v),t(_t)
@@ -99,6 +121,7 @@ Mesh::Mesh(const std::vector<CompFab::Vec3>&_v,
 Mesh::Mesh(const CompFab::Vec3 * _v,
   const CompFab::Vec3i * _t)
 {
+  std::cout << "assign: " << std::endl;
   v.assign(_v,_v+8);
   t.assign(_t,_t+12);
   
@@ -115,10 +138,14 @@ void Mesh::save(std::ostream & out, std::vector<CompFab::Vec3> * vert)
   if(vert==0){
     vert = &v;
   }
+
+  std::vector<CompFab::Vec3> * color_vector;
+  color_vector = &colors;
   for(size_t ii=0;ii<vert->size();ii++){
     // example line below to turn a voxel blue
     // out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<" 0.0 0.0 1.0\n";
-    out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<"\n";
+    // out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<"\n";
+    out<<vTok<<" "<<(*vert)[ii][0]<<" "<<(*vert)[ii][1]<<" "<<(*vert)[ii][2]<<" "<<(*color_vector)[ii][0]<<" "<<(*color_vector)[ii][1]<<" "<<(*color_vector)[ii][2]<<"\n";
   }
   if(tex.size()>0){
     for(size_t ii=0;ii<tex.size();ii++){

@@ -13,6 +13,7 @@
 #include <cmath>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace CompFab
 {
@@ -111,6 +112,8 @@ namespace CompFab
     
     //Dot Product
     double operator*(const Vec3 &v1, const Vec3 &v2);
+
+    //int operator<(const Vec3 &v1, const Vec3 &v2);
     
     
     //Grid structure for Voxels
@@ -190,16 +193,51 @@ namespace CompFab
         PuzzlePieceStruct();
         ~PuzzlePieceStruct();
 
+        // get id 
+        inline unsigned int getID() {
+            return m_id;
+        }
+
         // get_voxels()
+        inline std::vector<int> getVoxels() {
+            return m_voxels;
+        } 
 
-        // add_voxels(Vec3i[])
+        // add_voxels(std::vector<int>)
+        // takes in a list of new Voxels to add, and adds them if they are no already in the set.
+        inline std::vector<int> add_voxels(std::vector<int> newVoxels) {
+            for (unsigned int i = 0; i < newVoxels.size(); i++) {
+                if (std::find(m_voxels.begin(), m_voxels.end(), newVoxels[i]) == m_voxels.end()) {
+                    m_voxels.push_back(newVoxels[i]);
+                }
+            }   
 
-        // remove_voxels(Vec3i[])
+            return m_voxels;        
+        }
+
+        // remove_voxels(std::vector<int>)
+        inline std::vector<int> remove_voxels(std::vector<int> badVoxels) {
+            std::vector<int>::iterator found;
+            std::vector<std::vector<int>::iterator> toErase;
+
+            for (unsigned int i = 0; i < badVoxels.size(); i++) {
+                found = std::find(m_voxels.begin(), m_voxels.end(), badVoxels[i]);
+                if (found != m_voxels.end()) {
+                    toErase.push_back(found);
+                }
+            } 
+
+            for (unsigned int j = 0; j < toErase.size(); j++) {
+                m_voxels.erase(toErase[j]);
+            }
+
+            return m_voxels;         
+        }
 
         // based on location, should be newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx
         unsigned int m_id;
-        // keeps track of the voxels inside in (i, j, k)
-        std::vector<Vec3i> m_voxels;
+        // keeps track of the voxels inside, k*(m_dimX*m_dimY)+j*m_dimY + i
+        std::vector<int> m_voxels;
         
     } PuzzlePiece;
 

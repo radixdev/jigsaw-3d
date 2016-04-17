@@ -244,20 +244,45 @@ namespace CompFab
     // A puzzle with a lot of pieces
     typedef struct PuzzleStruct {
         //Square voxels only
-        PuzzleStruct();
+        PuzzleStruct(unsigned int dimX, unsigned int dimY, unsigned int dimZ);
         ~PuzzleStruct();
 
         // get_pieces()
+        inline std::vector<PuzzlePiece> get_pieces() {
+            std::vector<PuzzlePiece> output;
+            for (std::map<unsigned int, PuzzlePiece>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
+                output.push_back(it -> second);
+            }
+        }
 
         // add_piece(id, PuzzlePiece)
+        inline void add_or_update_piece(unsigned int id, PuzzlePiece piece) {
+            if (m_pieceList.count(id) <= 0) {
+                // not in the map yet 
+                m_pieceList.insert(std::map<unsigned int, PuzzlePiece>::value_type(id, piece));
+            } else {
+                m_pieceList[id] = piece;
+            }
+            return;
+        }
 
         // remove_piece(id)
+        inline void remove_piece(unsigned int id) {
+            if (m_pieceList.count(id) > 0) {
+                // not in the map yet 
+                m_pieceList.erase(id);
+            }
+            return;
+        }
 
         // has_piece_at(i, j, k)
+        inline bool has_piece_at(int i, int j, int k) {
+            return m_pieceList.count(k*(m_dimX*m_dimY)+j*m_dimY + i) > 0;
+        }
 
         // merge_pieces(id1, id2)
 
-
+        unsigned int m_dimX, m_dimY, m_dimZ, m_size;
         std::map<unsigned int, PuzzlePiece> m_pieceList;
         
     } Puzzle;

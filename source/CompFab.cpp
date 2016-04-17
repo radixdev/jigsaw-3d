@@ -190,8 +190,13 @@ CompFab::PuzzlePieceStruct::~PuzzlePieceStruct()
 }
 
 //Class structure for puzzles
-CompFab::PuzzleStruct::PuzzleStruct()
+CompFab::PuzzleStruct::PuzzleStruct(unsigned int dimX, unsigned int dimY, unsigned int dimZ)
 {
+
+    m_dimX = dimX;
+    m_dimY = dimY;
+    m_dimZ = dimZ;
+    m_size = dimX*dimY*dimZ;
     return;
     
 }

@@ -121,7 +121,6 @@ Mesh::Mesh(const std::vector<CompFab::Vec3>&_v,
 Mesh::Mesh(const CompFab::Vec3 * _v,
   const CompFab::Vec3i * _t)
 {
-  std::cout << "assign: " << std::endl;
   v.assign(_v,_v+8);
   t.assign(_t,_t+12);
   

@@ -3,17 +3,21 @@
 #include <algorithm>    // std::min
 #include <string>
 #include <stdlib.h>
+#include <ctime>
 #include "../include/CompFab.h"
 #include "../include/Mesh.h"
-
 
 double getRandomColor() {
     int resolution =  100;
     return ((double)(rand() % resolution)) / ((double) resolution);
 }
 
-//Ray-Triangle Intersection
-//Returns 1 if triangle and ray intersect, 0 otherwise
+std::string getFileSuffixFromArgs(char **argv) {
+    return std::string(argv[2]).substr(0, std::string(argv[2]).size()-4);
+}
+
+// //Ray-Triangle Intersection
+// //Returns 1 if triangle and ray intersect, 0 otherwise
 int rayTriangleIntersection(CompFab::Ray &ray, CompFab::Triangle &triangle)
 {
     /********* ASSIGNMENT *********/
@@ -178,9 +182,83 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface, const bool s
     mout.save_obj(outfile);
 }
 
+void initializeVoxelGrid(char **argv) {
+    // if the VOX file is present, read from it.
+    // else, do the actual voxelization steps
 
-int main(int argc, char **argv)
-{
+    std::string voxelSaveFile = getFileSuffixFromArgs(argv) + "_VOXELS.vox";
+
+    if (isVoxelCacheFilePresent(voxelSaveFile.c_str())) {
+        std::cout << "reading from stored VOX file" << std::endl;
+        loadVoxelGrid(voxelSaveFile.c_str(), *g_voxelGrid);
+    } else {
+        std::cout << "generating voxels and VOX file" << std::endl;
+        //Cast ray, check if voxel is inside or outside 
+        //even number of surface intersections = outside (OUT then IN then OUT)
+        // odd number = inside (IN then OUT)
+        CompFab::Vec3 voxelPos;
+        CompFab::Vec3 direction(1.0,0.0,0.0);
+        CompFab::Vec3 direction2(0.0, 1.0, 0.0);
+        CompFab::Vec3 direction3(0.0, 0.0, 1.0);
+
+        std::clock_t start;
+        start = std::clock();
+
+        if (argv[3] && std::string(argv[3]) == "--multidir") {
+            for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+                for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+                    for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                        voxelPos = CompFab::Vec3(g_voxelGrid -> m_lowerLeft[0] + g_voxelGrid -> m_spacing*i,
+                                                 g_voxelGrid -> m_lowerLeft[1] + g_voxelGrid -> m_spacing*j,
+                                                 g_voxelGrid -> m_lowerLeft[2] + g_voxelGrid -> m_spacing*k);
+                        int intersectionNum = numSurfaceIntersections(voxelPos, direction);
+                        int intersectionNum2 = numSurfaceIntersections(voxelPos, direction2);
+                        int intersectionNum3 = numSurfaceIntersections(voxelPos, direction3);
+
+                        if (intersectionNum % 2 == 1 && intersectionNum2 % 2 == 1 && intersectionNum3 % 2 == 1) {
+                            // odd -> inside
+                            g_voxelGrid->setIsInside(i,j,k);
+                        }
+                    }
+                }
+            }
+
+        } else {
+            /********* ASSIGNMENT ********
+            /* Iterate over all voxels in g_voxelGrid and test whether they are inside our outside of the
+             * surface defined by the triangles in g_triangleList */
+
+            for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+                for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+                    for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                        voxelPos = CompFab::Vec3(g_voxelGrid -> m_lowerLeft[0] + g_voxelGrid -> m_spacing*i,
+                                                 g_voxelGrid -> m_lowerLeft[1] + g_voxelGrid -> m_spacing*j,
+                                                 g_voxelGrid -> m_lowerLeft[2] + g_voxelGrid -> m_spacing*k);
+                        int intersectionNum = numSurfaceIntersections(voxelPos, direction);
+                        if (intersectionNum % 2 == 1) {
+                            // odd -> inside
+                            g_voxelGrid->setIsInside(i,j,k);
+                        }
+                    }
+                }
+
+                std::cout << "progress: " <<k << " of " << (g_voxelGrid->m_dimZ - 1) << std::endl;
+            }
+        }
+        
+        std::cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+
+        std::cout << "finished initial loop" << std::endl;
+
+        //Write out voxel data as obj
+        saveVoxelsToObj(argv[2], false, false);
+
+        // save voxel data as VOX file
+        saveVoxelGrid(voxelSaveFile.c_str(), *g_voxelGrid);
+    }
+}
+
+int main(int argc, char **argv) {
 
     unsigned int dim = 32   ; //dimension of voxel grid (e.g. 32x32x32)
 
@@ -193,69 +271,12 @@ int main(int argc, char **argv)
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";
     loadMesh(argv[1], dim);
-    
-/*    CompFab::Vec3 a = CompFab::Vec3(6, 8, 3);
-    CompFab::Vec3 b = CompFab::Vec3(6, 8, -2);
-    CompFab::Vec3 c = CompFab::Vec3(6, -4, -2);
 
-    CompFab::Triangle tri(a, b, c);
+    std::clock_t start;
+    start = std::clock();
 
-    CompFab::Vec3 ori(0, 0, 0);
-    CompFab::Vec3 dir(8, 0, 0);
-    CompFab::Ray rayEx(ori, dir);
-    std::cout << rayTriangleIntersection(rayEx, tri) << std::endl;*/
-    
-    //Cast ray, check if voxel is inside or outside 
-    //even number of surface intersections = outside (OUT then IN then OUT)
-    // odd number = inside (IN then OUT)
-    CompFab::Vec3 voxelPos;
-    CompFab::Vec3 direction(1.0,0.0,0.0);
-    CompFab::Vec3 direction2(0.0, 1.0, 0.0);
-    CompFab::Vec3 direction3(0.0, 0.0, 1.0);
-
-    if (argv[3] && std::string(argv[3]) == "--multidir") {
-        for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
-            for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
-                for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
-                    voxelPos = CompFab::Vec3(g_voxelGrid -> m_lowerLeft[0] + g_voxelGrid -> m_spacing*i,
-                                             g_voxelGrid -> m_lowerLeft[1] + g_voxelGrid -> m_spacing*j,
-                                             g_voxelGrid -> m_lowerLeft[2] + g_voxelGrid -> m_spacing*k);
-                    int intersectionNum = numSurfaceIntersections(voxelPos, direction);
-                    int intersectionNum2 = numSurfaceIntersections(voxelPos, direction2);
-                    int intersectionNum3 = numSurfaceIntersections(voxelPos, direction3);
-
-                    if (intersectionNum % 2 == 1 && intersectionNum2 % 2 == 1 && intersectionNum3 % 2 == 1) {
-                        // odd -> inside
-                        g_voxelGrid->setIsInside(i,j,k);
-                    }
-                }
-            }
-        }
-
-    } else {
-        /********* ASSIGNMENT *********/
-        /* Iterate over all voxels in g_voxelGrid and test whether they are inside our outside of the
-         * surface defined by the triangles in g_triangleList */
-
-        for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
-            for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
-                for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
-                    voxelPos = CompFab::Vec3(g_voxelGrid -> m_lowerLeft[0] + g_voxelGrid -> m_spacing*i,
-                                             g_voxelGrid -> m_lowerLeft[1] + g_voxelGrid -> m_spacing*j,
-                                             g_voxelGrid -> m_lowerLeft[2] + g_voxelGrid -> m_spacing*k);
-                    int intersectionNum = numSurfaceIntersections(voxelPos, direction);
-                    if (intersectionNum % 2 == 1) {
-                        // odd -> inside
-                        g_voxelGrid->setIsInside(i,j,k);
-                    }
-                }
-            }
-        }
-    }
-    
-    std::cout << "finished initial lloop" << std::endl;
-    //Write out voxel data as obj
-    saveVoxelsToObj(argv[2], false, false);
+    initializeVoxelGrid(argv);
+    std::cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
 
     std::cout << "starting surface analysis" << std::endl;
     bool top, bottom, left, right, fwd, bck;

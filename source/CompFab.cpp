@@ -4,7 +4,8 @@
 //
 //
 //
-
+#include <fstream>
+#include <iostream>
 #include "../include/CompFab.h"
 
 
@@ -207,5 +208,86 @@ CompFab::PuzzleStruct::~PuzzleStruct()
 }
 
 
+void saveGrid(std::ostream & out, CompFab::VoxelGrid & voxelGrid) {
+    // write bool per line
+    for (int i=0; i < voxelGrid.m_size; i++) {
+        bool isInside = voxelGrid.m_insideArray[i];
+        if (isInside) {
+            out<<"1\n";
+        } else {
+            out<<"0\n";
+        }
+    }
 
+    out<<"#end\n";
+}
+
+void readGrid(std::istream & f, CompFab::VoxelGrid & voxelGrid) {
+    std::string line;
+    std::string endLine("#end");
+    std::string trueLine("1");
+    std::string falseLine("0");
+
+    int i = 0;
+    while(true) {
+        std::getline(f,line);
+
+        // if we hit the end line, break out
+        if(std::string::npos!=line.find(endLine)) {
+            break;
+        }
+
+        if(std::string::npos!=line.find(trueLine)) {
+            voxelGrid.m_insideArray[i] = true;
+        }
+
+        if(std::string::npos!=line.find(falseLine)) {
+            voxelGrid.m_insideArray[i] = false;
+        }
+
+        i++;
+    }
+
+    std::cout<<"lines read from VOX file: "<<i<<"\n";
+
+}
+
+void loadVoxelGrid(const char * filename, CompFab::VoxelGrid & voxelGrid) {
+    std::cout<<"loading VOX file "<<filename<<"\n";
+    std::ifstream f;
+    f.open(filename);
+    if(!f.good()) {
+        std::cout<<"Error: cannot open VOX file "<<filename<<"\n";
+        return;
+    }
+
+
+    readGrid(f, voxelGrid);
+    f.close();
+    std::cout<<"done loading grid cache file\n";
+}
+
+void saveVoxelGrid(const char * filename, CompFab::VoxelGrid & voxelGrid) {
+    std::ofstream out(filename);
+    if(!out.good()){
+        std::cout<<"cannot open voxel grid output file"<<filename<<"\n";
+        return;
+    }
+
+    saveGrid(out, voxelGrid);
+    out.close();
+    std::cout<<"done saving grid cache file\n";
+}
+
+bool isVoxelCacheFilePresent(const char * filename) {
+    std::ifstream f;
+    f.open(filename);
+    if (f.good()) {
+        f.close();
+        return true;
+    } else {
+        f.close();
+        return false;
+    } 
+}
 

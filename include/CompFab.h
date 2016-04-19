@@ -288,6 +288,10 @@ namespace CompFab
     } Puzzle;
 }
 
+void loadVoxelGrid(const char * filename, CompFab::VoxelGrid & voxelGrid);
+void saveVoxelGrid(const char * filename, CompFab::VoxelGrid & voxelGrid);
 
+// if the VOX file is present, return true
+bool isVoxelCacheFilePresent(const char * filename);
 
 #endif

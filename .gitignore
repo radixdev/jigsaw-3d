@@ -75,3 +75,4 @@ data/
 !data/teapot/teapot.obj
 !data/sphere/sphere.obj
 !data/sphere/sphere.mtl
+!data/**/*.vox

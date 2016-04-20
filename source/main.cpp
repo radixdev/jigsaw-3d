@@ -264,7 +264,7 @@ void initializeVoxelGrid(char **argv, unsigned int dim) {
 
 int main(int argc, char **argv) {
 
-    unsigned int dim = 32   ; //dimension of voxel grid (e.g. 32x32x32)
+    unsigned int dim = 64   ; //dimension of voxel grid (e.g. 32x32x32)
 
     //Load OBJ
     if(argc < 3)

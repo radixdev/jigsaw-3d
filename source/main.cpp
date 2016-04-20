@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>    // std::min
 #include <string>
+#include <sstream>
 #include <stdlib.h>
 #include <ctime>
 #include "../include/CompFab.h"
@@ -182,11 +183,14 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface, const bool s
     mout.save_obj(outfile);
 }
 
-void initializeVoxelGrid(char **argv) {
+void initializeVoxelGrid(char **argv, unsigned int dim) {
     // if the VOX file is present, read from it.
     // else, do the actual voxelization steps
 
-    std::string voxelSaveFile = getFileSuffixFromArgs(argv) + "_VOXELS.vox";
+    std::stringstream ss;
+    ss<<dim;
+
+    std::string voxelSaveFile = std::string(argv[1]).substr(0, std::string(argv[1]).size()-4) +"_dim"+ss.str()+ "_VOXELS.vox";
 
     if (isVoxelCacheFilePresent(voxelSaveFile.c_str())) {
         std::cout << "reading from stored VOX file" << std::endl;
@@ -275,7 +279,7 @@ int main(int argc, char **argv) {
     std::clock_t start;
     start = std::clock();
 
-    initializeVoxelGrid(argv);
+    initializeVoxelGrid(argv, dim);
     std::cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
 
     std::cout << "starting surface analysis" << std::endl;

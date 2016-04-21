@@ -189,8 +189,7 @@ namespace CompFab
 
     // A single piece
     typedef struct PuzzlePieceStruct {
-        //Square voxels only
-        PuzzlePieceStruct(unsigned int m_id);
+        PuzzlePieceStruct(unsigned int id);
         ~PuzzlePieceStruct();
 
         // get id 
@@ -248,22 +247,21 @@ namespace CompFab
         ~PuzzleStruct();
 
         // get_pieces()
-        inline std::vector<PuzzlePiece> get_pieces() {
-            std::vector<PuzzlePiece> output;
-            for (std::map<unsigned int, PuzzlePiece>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
-                output.push_back(it -> second);
-            }
-        }
+        // inline std::vector<PuzzlePiece> get_pieces() {
+        //     std::vector<PuzzlePiece> output;
+        //     for (std::map<unsigned int, PuzzlePiece>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
+        //         output.push_back(it -> second);
+        //     }
+        // }
 
-        // add_piece(id, PuzzlePiece)
-        inline void add_or_update_piece(unsigned int id, PuzzlePiece piece) {
+        // // add_piece(id, PuzzlePiece)
+        inline void add_piece(unsigned int id) {
             if (m_pieceList.count(id) <= 0) {
                 // not in the map yet 
-                m_pieceList.insert(std::map<unsigned int, PuzzlePiece>::value_type(id, piece));
-            } else {
-                m_pieceList[id] = piece;
+                // PuzzlePiece piece = new PuzzlePiece(id);
+                // m_pieceList.insert(std::map<unsigned int, PuzzlePiece>::value_type(id, piece));
+                m_pieceList.insert(std::make_pair<unsigned int, PuzzlePiece>(id, PuzzlePiece(id)));
             }
-            return;
         }
 
         // remove_piece(id)
@@ -272,12 +270,17 @@ namespace CompFab
                 // not in the map yet 
                 m_pieceList.erase(id);
             }
-            return;
         }
 
         // has_piece_at(i, j, k)
         inline bool has_piece_at(int i, int j, int k) {
             return m_pieceList.count(k*(m_dimX*m_dimY)+j*m_dimY + i) > 0;
+        }
+
+        inline std::map<unsigned int, PuzzlePiece>::iterator get_piece_at(unsigned int id) {
+            // the iterator is the object of key->value that the map actually stores
+            // the value is thus found by get_piece_at(ID_HERE)->second
+            return m_pieceList.find(id);
         }
 
         // merge_pieces(id1, id2)

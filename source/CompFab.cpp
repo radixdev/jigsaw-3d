@@ -179,34 +179,23 @@ CompFab::VoxelGridStruct::~VoxelGridStruct()
 }
 
 //Class structure for puzzle pieces
-CompFab::PuzzlePieceStruct::PuzzlePieceStruct()
-{
-    return;
-    
+CompFab::PuzzlePieceStruct::PuzzlePieceStruct(unsigned int id) {
+    m_id = id;
 }
 
-CompFab::PuzzlePieceStruct::~PuzzlePieceStruct()
-{
-    return;
+CompFab::PuzzlePieceStruct::~PuzzlePieceStruct() {
 }
 
 //Class structure for puzzles
-CompFab::PuzzleStruct::PuzzleStruct(unsigned int dimX, unsigned int dimY, unsigned int dimZ)
-{
-
+CompFab::PuzzleStruct::PuzzleStruct(unsigned int dimX, unsigned int dimY, unsigned int dimZ) {
     m_dimX = dimX;
     m_dimY = dimY;
     m_dimZ = dimZ;
     m_size = dimX*dimY*dimZ;
-    return;
-    
 }
 
-CompFab::PuzzleStruct::~PuzzleStruct()
-{
-    return;
+CompFab::PuzzleStruct::~PuzzleStruct() {
 }
-
 
 void saveGrid(std::ostream & out, CompFab::VoxelGrid & voxelGrid) {
     // write bool per line

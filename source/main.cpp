@@ -264,7 +264,7 @@ void initializeVoxelGrid(char **argv, unsigned int dim) {
 }
 
 void initializePuzzle(unsigned int dim) {
-    g_puzzle = new CompFab::Puzzle(dim);
+    g_puzzle = new CompFab::Puzzle(dim,dim,dim);
 }
 
 int main(int argc, char **argv) {
@@ -337,10 +337,24 @@ int main(int argc, char **argv) {
                     g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
 
                     // setting the voxel color here
-                    unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
+                    // unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
                     srand(pieceNum);
 
                     g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
+
+                    // // create the piece in the puzzle struct
+                    // if (!g_puzzle->has_piece_at(i,j,k)) {
+                    //     g_puzzle->add_piece(pieceNum);
+                    // }
+
+                    // // add this voxel to that piece
+                    // g_puzzle->get_piece_at(pieceNum);
+
+                    // std::stringstream val;
+
+                    // val << g_puzzle->get_piece_at(pieceNum)->second.getID();
+
+                    // std::cout << "piece num" << val.str() << std::endl;
                 } 
             }
         }

@@ -280,9 +280,11 @@ int main(int argc, char **argv) {
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";
     loadMesh(argv[1], dim); 
+    
+    unsigned int PIECE_SIZE = 10;
 
     std::cout<<"Creating Puzzle : "<<"\n";
-    initializePuzzle(dim);
+    initializePuzzle(dim/PIECE_SIZE);
 
 
     std::clock_t start;
@@ -323,7 +325,6 @@ int main(int argc, char **argv) {
     saveVoxelsToObj(surfacefile.c_str(), true, false);
 
     std::cout << "starting divisions" << std::endl;
-    unsigned int PIECE_SIZE = 10;
     unsigned int newx, newy, newz, pieceNum;
     for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
         for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
@@ -342,13 +343,15 @@ int main(int argc, char **argv) {
 
                     g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
 
-                    // // create the piece in the puzzle struct
-                    // if (!g_puzzle->has_piece_at(i,j,k)) {
-                    //     g_puzzle->add_piece(pieceNum);
-                    // }
+                    // create the piece in the puzzle struct
+                    if (!g_puzzle->has_piece_at(i,j,k)) {
+                        g_puzzle->add_piece(pieceNum);
+                    }
 
-                    // // add this voxel to that piece
-                    // g_puzzle->get_piece_at(pieceNum);
+                    // add this voxel to that piece
+                    std::vector<int> newVoxels;
+                    newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
+                    g_puzzle->get_piece_at(pieceNum)->second.add_voxels(newVoxels);
 
                     // std::stringstream val;
 

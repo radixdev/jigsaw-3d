@@ -233,6 +233,11 @@ namespace CompFab
             return m_voxels;         
         }
 
+        // splits itself into puzzle pieces that are all contiguous
+        // returns a vector of puzzle pieces
+        // self, if it is all one piece, or many if there are separate chunks.  
+        std::vector<PuzzlePieceStruct> check_contiguous();
+
         // based on location, should be newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx
         unsigned int m_id;
         // keeps track of the voxels inside, k*(m_dimX*m_dimY)+j*m_dimY + i

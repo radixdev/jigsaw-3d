@@ -186,6 +186,13 @@ CompFab::PuzzlePieceStruct::PuzzlePieceStruct(unsigned int id) {
 CompFab::PuzzlePieceStruct::~PuzzlePieceStruct() {
 }
 
+
+std::vector<CompFab::PuzzlePiece> CompFab::PuzzlePieceStruct::check_contiguous(){
+    std::vector<CompFab::PuzzlePiece> output;
+    return output;
+}
+
+
 //Class structure for puzzles
 CompFab::PuzzleStruct::PuzzleStruct(unsigned int dimX, unsigned int dimY, unsigned int dimZ) {
     m_dimX = dimX;

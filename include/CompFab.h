@@ -190,7 +190,7 @@ namespace CompFab
     // A single piece
     typedef struct PuzzlePieceStruct {
         //Square voxels only
-        PuzzlePieceStruct();
+        PuzzlePieceStruct(unsigned int m_id);
         ~PuzzlePieceStruct();
 
         // get id 

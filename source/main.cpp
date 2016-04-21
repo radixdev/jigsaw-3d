@@ -7,6 +7,13 @@
 #include <ctime>
 #include "../include/CompFab.h"
 #include "../include/Mesh.h"
+        
+//Triangle list (global)
+typedef std::vector<CompFab::Triangle> TriangleList;
+
+TriangleList g_triangleList;
+CompFab::VoxelGrid *g_voxelGrid;
+CompFab::Puzzle *g_puzzle;
 
 double getRandomColor() {
     int resolution =  100;
@@ -71,12 +78,6 @@ int rayTriangleIntersection(CompFab::Ray &ray, CompFab::Triangle &triangle)
     }
 
 }
-        
-//Triangle list (global)
-typedef std::vector<CompFab::Triangle> TriangleList;
-
-TriangleList g_triangleList;
-CompFab::VoxelGrid *g_voxelGrid;
 
 //Number of intersections with surface made by a ray originating at voxel and cast in direction.
 int numSurfaceIntersections(CompFab::Vec3 &voxelPos, CompFab::Vec3 &dir)
@@ -262,9 +263,13 @@ void initializeVoxelGrid(char **argv, unsigned int dim) {
     }
 }
 
+void initializePuzzle(unsigned int dim) {
+    g_puzzle = new CompFab::Puzzle(dim);
+}
+
 int main(int argc, char **argv) {
 
-    unsigned int dim = 32; //dimension of voxel grid (e.g. 32x32x32)
+    unsigned int dim = 64; //dimension of voxel grid (e.g. 32x32x32)
 
     //Load OBJ
     if(argc < 3)
@@ -274,7 +279,11 @@ int main(int argc, char **argv) {
     }
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";
-    loadMesh(argv[1], dim);
+    loadMesh(argv[1], dim); 
+
+    std::cout<<"Creating Puzzle : "<<"\n";
+    initializePuzzle(dim);
+
 
     std::clock_t start;
     start = std::clock();
@@ -308,7 +317,7 @@ int main(int argc, char **argv) {
 
     std::cout << "finished surface analysis" << std::endl;
 
-    std::string surfacefile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_surface.obj";
+    std::string surfacefile = getFileSuffixFromArgs(argv) + "_surface.obj";
     std::cout << surfacefile << std::endl;
 
     saveVoxelsToObj(surfacefile.c_str(), true, false);
@@ -337,7 +346,7 @@ int main(int argc, char **argv) {
         }
     }
     std::cout << "ending divisions" << std::endl;
-    std::string dividedfile = std::string(argv[2]).substr(0, std::string(argv[2]).size()-4) + "_divided.obj";
+    std::string dividedfile = getFileSuffixFromArgs(argv) + "_divided.obj";
     std::cout << dividedfile << std::endl;
 
     saveVoxelsToObj(dividedfile.c_str(), true, true);

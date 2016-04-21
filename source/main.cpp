@@ -269,7 +269,7 @@ void initializePuzzle(unsigned int dim) {
 
 int main(int argc, char **argv) {
 
-    unsigned int dim = 64; //dimension of voxel grid (e.g. 32x32x32)
+    unsigned int dim = 32; //dimension of voxel grid (e.g. 32x32x32)
 
     //Load OBJ
     if(argc < 3)
@@ -317,6 +317,35 @@ int main(int argc, char **argv) {
         }
     }
 
+    // do another layer for structural integrity
+    std::vector<int> secondLayer;
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                // only do this if we have a solid piece, not air, but also not on the surface already
+                if (g_voxelGrid->isInside(i, j, k) && !g_voxelGrid->isOnSurface(i, j, k)) {
+                    left = g_voxelGrid->isOnSurface(std::max(0, i-1), j, k);
+                    right = g_voxelGrid->isOnSurface(std::min((int) g_voxelGrid -> m_dimX -1, i+1), j, k);
+                    top = g_voxelGrid->isOnSurface(i, std::max(0, j-1), k);
+                    bottom = g_voxelGrid->isOnSurface(i, std::min((int) g_voxelGrid -> m_dimY -1, j+1), k);
+                    fwd = g_voxelGrid->isOnSurface(i, j, std::max(0, k-1));
+                    bck = g_voxelGrid->isOnSurface(i, j, std::min((int) g_voxelGrid -> m_dimZ -1, k+1));
+
+                    if (left || right || top || bottom || fwd || bck) {
+                        secondLayer.push_back(k*(g_voxelGrid->m_dimX*g_voxelGrid->m_dimY)+j*g_voxelGrid->m_dimY + i);
+                    }
+
+                } 
+            }
+        }
+    }
+
+    std::cout << "second layer has size: " << secondLayer.size() << std::endl;
+
+    for (int i = 0; i < secondLayer.size(); i++ ) {
+        g_voxelGrid -> setOnSurface(secondLayer[i]);
+    }
+
     std::cout << "finished surface analysis" << std::endl;
 
     std::string surfacefile = getFileSuffixFromArgs(argv) + "_surface.obj";
@@ -337,12 +366,6 @@ int main(int argc, char **argv) {
                     pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
                     g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
 
-                    // setting the voxel color here
-                    // unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
-                    srand(pieceNum);
-
-                    g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
-
                     // create the piece in the puzzle struct
                     if (!g_puzzle->has_piece_at(i,j,k)) {
                         g_puzzle->add_piece(pieceNum);
@@ -362,6 +385,39 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    g_puzzle -> check_contiguous(g_voxelGrid -> m_dimX, g_voxelGrid -> m_dimY, g_voxelGrid -> m_dimZ);
+    std::cout << "updating hte voxel grid" << std::endl;
+
+    g_voxelGrid -> updatePiecesFromPuzzle(g_puzzle);
+
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+
+                // setting the voxel color here
+                unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
+                srand(pieceNum);
+
+                g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
+            }
+        }
+    }
+
+    int surfaces = 0;
+    int pieces = 0;
+
+    for (int i = 0; i < g_voxelGrid -> m_size; i++ ){
+        if (g_voxelGrid->isOnSurface(i)) {
+            surfaces += 1;
+        }
+        if (g_voxelGrid->getPieceNum(i) != 0) {
+            pieces += 1;
+        } 
+    }
+
+    std::cout<<"found " <<surfaces<<" surface voxels and " << pieces << " piece voxels" << std::endl;
+
     std::cout << "ending divisions" << std::endl;
     std::string dividedfile = getFileSuffixFromArgs(argv) + "_divided.obj";
     std::cout << dividedfile << std::endl;

@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 namespace CompFab
 {
@@ -115,81 +116,10 @@ namespace CompFab
 
     //int operator<(const Vec3 &v1, const Vec3 &v2);
     
-    
-    //Grid structure for Voxels
-    typedef struct VoxelGridStruct {
-        //Square voxels only
-        VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, unsigned int dimY, unsigned int dimZ, double spacing);
-        ~VoxelGridStruct();
-
-        inline bool & isInside(int ii, int jj, int kk) {
-            unsigned int i = (unsigned int) ii;
-            unsigned int j = (unsigned int) jj;
-            unsigned int k = (unsigned int) kk;
-            
-            return m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
-        }  
-
-        inline void setIsInside(unsigned int i, unsigned int j, unsigned int k) {
-            m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
-        }      
-
-        inline bool & isOnSurface(unsigned int i, unsigned int j, unsigned int k) {
-            return m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
-        }
-
-        inline void setOnSurface(unsigned int i, unsigned int j, unsigned int k) {
-            m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
-        }  
-
-        inline unsigned int & getPieceNum(unsigned int i, unsigned int j, unsigned int k) {
-            return m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
-        }
-
-        inline void setPieceNum(unsigned int i, unsigned int j, unsigned int k, unsigned int pieceNum) {
-            m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = pieceNum;
-        }  
-
-        inline int getArrayIndexByCoordinate(unsigned int i, unsigned int j, unsigned int k) {
-            return k*(m_dimX*m_dimY)+j*m_dimY + i;
-        }
-
-        // colors
-        inline double getVoxelColor_r(unsigned int i, unsigned int j, unsigned int k) {
-            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3];
-        }
-        inline double getVoxelColor_g(unsigned int i, unsigned int j, unsigned int k) {
-            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1];
-        }
-        inline double getVoxelColor_b(unsigned int i, unsigned int j, unsigned int k) {
-            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2];
-        }
-
-        inline void setVoxelColor(unsigned int i, unsigned int j, unsigned int k, double r, double g, double b) {
-            m_color_array[getArrayIndexByCoordinate(i,j,k)*3] = r;
-            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1] = g;
-            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2] = b;
-        }
-        // updatePiecesFromPuzzle(Puzzle) // should change pieceNumArray to be the same as the puzzle structure.
-
-        bool *m_insideArray;
-        bool *m_surfaceArray;
-        unsigned int m_dimX, m_dimY, m_dimZ, m_size;
-        double m_spacing;
-        Vec3 m_lowerLeft;
-
-        // piece numbers
-        unsigned int *m_pieceNumArray;
-
-        // color info
-        // 3* # vertices for (r,g,b)
-        double *m_color_array;
-        
-    } VoxelGrid;
-
-    // A single piece
+// A single piece
     typedef struct PuzzlePieceStruct {
         PuzzlePieceStruct(unsigned int id);
+        PuzzlePieceStruct(unsigned int id, std::vector<Vec3i> voxels, unsigned int dimX, unsigned int dimY, unsigned int dimZ);
         ~PuzzlePieceStruct();
 
         // get id 
@@ -236,7 +166,7 @@ namespace CompFab
         // splits itself into puzzle pieces that are all contiguous
         // returns a vector of puzzle pieces
         // self, if it is all one piece, or many if there are separate chunks.  
-        std::vector<PuzzlePieceStruct> check_contiguous();
+        std::vector<PuzzlePieceStruct> check_contiguous(unsigned int gridX, unsigned int gridY, unsigned int gridZ);
 
         // based on location, should be newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx
         unsigned int m_id;
@@ -288,12 +218,136 @@ namespace CompFab
             return m_pieceList.find(id);
         }
 
+        inline void check_contiguous(unsigned int gridX, unsigned int gridY, unsigned int gridZ) {
+            // loop through all pieces,
+            std::vector<PuzzlePiece> newPieces;
+            std::vector<PuzzlePiece> intermediatePieces;
+
+            for (std::map<unsigned int, PuzzlePiece>::iterator p = m_pieceList.begin(); p != m_pieceList.end(); p++ ) {
+
+                intermediatePieces = p->second.check_contiguous(gridX, gridY, gridZ);
+                for (int i = 0; i < intermediatePieces.size(); i++) {
+                    newPieces.push_back(intermediatePieces[i]);
+                }
+
+            }
+            // update m_pieceList
+            std::cout << "there are " << newPieces.size() << " pieces" << std::endl;
+            m_pieceList.clear();
+            for (int i = 0; i < newPieces.size(); i++) {
+                m_pieceList.insert(std::make_pair<unsigned int, PuzzlePiece>(newPieces[i].getID(), newPieces[i]));
+            }
+
+
+            return;
+
+        }
+
         // merge_pieces(id1, id2)
 
         unsigned int m_dimX, m_dimY, m_dimZ, m_size;
         std::map<unsigned int, PuzzlePiece> m_pieceList;
         
-    } Puzzle;
+    } Puzzle;    
+
+    //Grid structure for Voxels
+    typedef struct VoxelGridStruct {
+        //Square voxels only
+        VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, unsigned int dimY, unsigned int dimZ, double spacing);
+        ~VoxelGridStruct();
+
+        inline bool & isInside(int ii, int jj, int kk) {
+            unsigned int i = (unsigned int) ii;
+            unsigned int j = (unsigned int) jj;
+            unsigned int k = (unsigned int) kk;
+            
+            return m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
+        }  
+
+        inline void setIsInside(unsigned int i, unsigned int j, unsigned int k) {
+            m_insideArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
+        }      
+
+        inline bool & isOnSurface(unsigned int i, unsigned int j, unsigned int k) {
+            return m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
+        }
+
+        inline bool & isOnSurface(int index) {
+            return m_surfaceArray[index];
+        }
+
+        inline void setOnSurface(unsigned int i, unsigned int j, unsigned int k) {
+            m_surfaceArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = true;
+        }  
+
+        inline void setOnSurface(int index) {
+            m_surfaceArray[index] = true;
+        }
+
+        inline unsigned int & getPieceNum(unsigned int i, unsigned int j, unsigned int k) {
+            return m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i];
+        }
+
+        inline unsigned int & getPieceNum(int index) {
+            return m_pieceNumArray[index];
+        }
+
+        inline void setPieceNum(unsigned int i, unsigned int j, unsigned int k, unsigned int pieceNum) {
+            m_pieceNumArray[k*(m_dimX*m_dimY)+j*m_dimY + i] = pieceNum;
+        }  
+
+        inline int getArrayIndexByCoordinate(unsigned int i, unsigned int j, unsigned int k) {
+            return k*(m_dimX*m_dimY)+j*m_dimY + i;
+        }
+
+        // colors
+        inline double getVoxelColor_r(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3];
+        }
+        inline double getVoxelColor_g(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1];
+        }
+        inline double getVoxelColor_b(unsigned int i, unsigned int j, unsigned int k) {
+            return m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2];
+        }
+
+        inline void setVoxelColor(unsigned int i, unsigned int j, unsigned int k, double r, double g, double b) {
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3] = r;
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 1] = g;
+            m_color_array[getArrayIndexByCoordinate(i,j,k)*3 + 2] = b;
+        }
+        
+        inline void updatePiecesFromPuzzle(PuzzleStruct* puzzle) {
+        // should change pieceNumArray to be the same as the puzzle structure.
+            for (int i = 0; i < m_size; i++) {
+                m_pieceNumArray[i] = 0;
+            }
+            for (std::map<unsigned int, PuzzlePiece>::iterator p = puzzle->m_pieceList.begin(); p != puzzle->m_pieceList.end(); p++ ) {
+                PuzzlePiece piece = p->second;
+                std::vector<int> vs = piece.getVoxels();
+                for (int i = 0; i < vs.size(); i++) {
+                    m_pieceNumArray[vs[i]] = piece.getID();
+                }
+            }
+
+            return;
+        }
+
+        bool *m_insideArray;
+        bool *m_surfaceArray;
+        unsigned int m_dimX, m_dimY, m_dimZ, m_size;
+        double m_spacing;
+        Vec3 m_lowerLeft;
+
+        // piece numbers
+        unsigned int *m_pieceNumArray;
+
+        // color info
+        // 3* # vertices for (r,g,b)
+        double *m_color_array;
+        
+    } VoxelGrid;
+
 }
 
 void loadVoxelGrid(const char * filename, CompFab::VoxelGrid & voxelGrid);

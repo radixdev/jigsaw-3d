@@ -434,7 +434,7 @@ int main(int argc, char **argv) {
     // iterate over all puzzle pieces
     // if it has too small size, merge with the piece with the largest neighbors
 
-    // std::vector<CompFab::PuzzlePiece> allPieces = g_puzzle->get_pieces();
+    // std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
     // std::vector<CompFab::PuzzlePiece>::iterator itr;
     // for (itr = allPieces.begin(); itr < allPieces.end(); ++itr) {
     //     // CompFab::PuzzlePiece piece = (CompFab::PuzzlePiece) *itr;

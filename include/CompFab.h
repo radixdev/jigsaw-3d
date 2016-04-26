@@ -195,7 +195,6 @@ namespace CompFab
             std::vector<PuzzlePiece> output;
             for (std::map<unsigned int, PuzzlePiece*>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
                 output.push_back(*(it->second));
-                // std::cout << "piece id" << (*(it->second)).m_id << std::endl;
             }
         }
 
@@ -350,19 +349,13 @@ namespace CompFab
             for (std::map<unsigned int, PuzzlePiece*>::iterator p = puzzle->m_pieceList.begin(); p != puzzle->m_pieceList.end(); p++ ) {
                 PuzzlePiece* piece = p->second;
                 std::vector<int>* constituentVoxelIdsFromPiece = piece->getVoxels();
-                // std::cout << "size" << constituentVoxelIdsFromPiece->size() << std::endl;
 
                 for (int i = 0; i < constituentVoxelIdsFromPiece->size(); i++) {
-                    // std::cout << "1 " << i << std::endl;
                     int voxelID = (constituentVoxelIdsFromPiece)->at(i);
 
-                    // std::cout << "voxelID " << voxelID << std::endl;
                     int pieceID = piece->getID();
 
-                    // std::cout << "pieceID " << pieceID << std::endl;
                     m_pieceNumArray[voxelID] = pieceID;
-                    // setPieceNum(voxelID, pieceID);
-                    // std::cout << "3" << std::endl;
                 }
             }
         }

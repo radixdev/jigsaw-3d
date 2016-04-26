@@ -197,70 +197,70 @@ CompFab::PuzzlePieceStruct::PuzzlePieceStruct(unsigned int id, std::vector<Vec3i
 CompFab::PuzzlePieceStruct::~PuzzlePieceStruct() {
 }
 
-// // This is n^2 n number of voxels. In the future, possibly optimize.
-// std::vector<CompFab::PuzzlePiece> CompFab::PuzzlePieceStruct::check_contiguous(unsigned int gridX, unsigned int gridY, unsigned int gridZ) {
-//     std::vector<CompFab::PuzzlePiece> output;
-//     // list of puzzle piece groups, which are list of i,j,k lists
-//     std::vector< std::vector<Vec3i> > pieceList;
-//     int packedVox, i, j, k;
-//     bool found;
-//     std::vector<Vec3i> piece;
-//     Vec3i pv;
-//     bool neighborx, neighbory, neighborz;
+// This is n^2 n number of voxels. In the future, possibly optimize.
+std::vector<CompFab::PuzzlePiece> CompFab::PuzzlePieceStruct::check_contiguous(unsigned int gridX, unsigned int gridY, unsigned int gridZ) {
+    std::vector<CompFab::PuzzlePiece> output;
+    // list of puzzle piece groups, which are list of i,j,k lists
+    std::vector< std::vector<Vec3i> > pieceList;
+    int packedVox, i, j, k;
+    bool found;
+    std::vector<Vec3i> piece;
+    Vec3i pv;
+    bool neighborx, neighbory, neighborz;
 
 
-//     for (int vox = 0; vox < m_voxels.size(); vox++) {
-//         packedVox = m_voxels[vox];
-//         //k*(m_dimX*m_dimY)+j*m_dimY + i = packedVox
-//         i = packedVox % gridY;
-//         j = (packedVox-i)/gridY % gridX;
-//         k = ((packedVox-i)/gridY - j )/gridX;
+    for (int vox = 0; vox < m_voxels.size(); vox++) {
+        packedVox = m_voxels[vox];
+        //k*(m_dimX*m_dimY)+j*m_dimY + i = packedVox
+        i = packedVox % gridY;
+        j = (packedVox-i)/gridY % gridX;
+        k = ((packedVox-i)/gridY - j )/gridX;
 
-//         found = false;
-//         Vec3i p(i,j,k);
+        found = false;
+        Vec3i p(i,j,k);
 
-//         for (int piece_i = 0; piece_i < pieceList.size(); piece_i++) {
+        for (int piece_i = 0; piece_i < pieceList.size(); piece_i++) {
             
-//             piece = pieceList[piece_i];
-//             int s = piece.size();
-//             for (int piecevox = 0; piecevox < s; piecevox++) {
-//                 if (!found) {
-//                     pv = piece[piecevox];
-//                     neighborx = (j == pv[1]) && (k == pv[2]) && (std::abs(i - pv[0]) <= 1);
-//                     neighbory = (i == pv[0]) && (k == pv[2]) && (std::abs(j - pv[1]) <= 1);
-//                     neighborz = (j == pv[1]) && (i == pv[0]) && (std::abs(k - pv[2]) <= 1);
-//                     bool neighbor = (std::abs(i - pv[0]) <= 1) && (std::abs(j - pv[1]) <= 1) && (std::abs(k - pv[2]) <= 1);
-//                     if (neighbor){//(neighborx || neighbory || neighborz) {
-//                         found = true;
-//                         // std::cout << i << " " << j << " " << k << " " << pv[0] << " " << pv[1] << " " << pv[2] << std::endl;    
-//                         pieceList[piece_i].push_back(p);
-//                     }
-//                 }
-//             }               
-//         }
+            piece = pieceList[piece_i];
+            int s = piece.size();
+            for (int piecevox = 0; piecevox < s; piecevox++) {
+                if (!found) {
+                    pv = piece[piecevox];
+                    neighborx = (j == pv[1]) && (k == pv[2]) && (std::abs(i - pv[0]) <= 1);
+                    neighbory = (i == pv[0]) && (k == pv[2]) && (std::abs(j - pv[1]) <= 1);
+                    neighborz = (j == pv[1]) && (i == pv[0]) && (std::abs(k - pv[2]) <= 1);
+                    bool neighbor = (std::abs(i - pv[0]) <= 1) && (std::abs(j - pv[1]) <= 1) && (std::abs(k - pv[2]) <= 1);
+                    if (neighbor){//(neighborx || neighbory || neighborz) {
+                        found = true;
+                        // std::cout << i << " " << j << " " << k << " " << pv[0] << " " << pv[1] << " " << pv[2] << std::endl;    
+                        pieceList[piece_i].push_back(p);
+                    }
+                }
+            }               
+        }
     
 
-//         if (!found) {        
-//             std::vector<Vec3i> newPiece;
-//             newPiece.push_back(p);
-//             pieceList.push_back(newPiece);
-//         }
+        if (!found) {        
+            std::vector<Vec3i> newPiece;
+            newPiece.push_back(p);
+            pieceList.push_back(newPiece);
+        }
 
-//     }
+    }
 
-//     int count2 = 0;
-//     int offset = 1;
-//     for (int p = 0; p < pieceList.size(); p ++) {
-//         count2 += pieceList[p].size();
-//         CompFab::PuzzlePiece nextPiece(m_id*gridX*gridY*gridZ+offset, pieceList[p], gridX, gridY, gridZ);
-//         output.push_back(nextPiece);
-//         offset+=1;
-//     }
+    int count2 = 0;
+    int offset = 1;
+    for (int p = 0; p < pieceList.size(); p ++) {
+        count2 += pieceList[p].size();
+        CompFab::PuzzlePiece nextPiece(m_id*gridX*gridY*gridZ+offset, pieceList[p], gridX, gridY, gridZ);
+        output.push_back(nextPiece);
+        offset+=1;
+    }
 
 
 
-//     return output;
-// }
+    return output;
+}
 
 
 //Class structure for puzzles
@@ -269,9 +269,12 @@ CompFab::PuzzleStruct::PuzzleStruct(unsigned int dimX, unsigned int dimY, unsign
     m_dimY = dimY;
     m_dimZ = dimZ;
     m_size = dimX*dimY*dimZ;
+
+    m_pieceList = std::map<unsigned int, PuzzlePiece*>();
 }
 
 CompFab::PuzzleStruct::~PuzzleStruct() {
+    // delete m_pieceList;
 }
 
 void saveGrid(std::ostream & out, CompFab::VoxelGrid & voxelGrid) {

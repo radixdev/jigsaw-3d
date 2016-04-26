@@ -391,36 +391,40 @@ int main(int argc, char **argv) {
     /////////////
     /////////////
 
-    // std::cout << "starting divisions" << std::endl;
-    // unsigned int newx, newy, newz, pieceNum;
-    // for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
-    //     for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
-    //         for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
-    //             // only do this if we have a solid piece, not air
-    //             if (g_voxelGrid->isOnSurface(i, j, k)) {
-    //                 newx = i/PIECE_SIZE;
-    //                 newy = j/PIECE_SIZE;
-    //                 newz = k/PIECE_SIZE;
-    //                 pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
-    //                 g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
+    std::cout << "starting divisions" << std::endl;
+    unsigned int newx, newy, newz, pieceNum;
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                // only do this if we have a solid piece, not air
+                if (g_voxelGrid->isOnSurface(i, j, k)) {
+                    newx = i/PIECE_SIZE;
+                    newy = j/PIECE_SIZE;
+                    newz = k/PIECE_SIZE;
+                    pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
+                    g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
 
-    //                 // create the piece in the puzzle struct
-    //                 if (!g_puzzle->has_piece_at(i,j,k)) {
-    //                     g_puzzle->add_piece(pieceNum);
-    //                 }
+                    // create the piece in the puzzle struct
+                    if (!g_puzzle->has_piece_at(i,j,k)) {
+                        g_puzzle->add_piece(pieceNum);
+                    }
 
-    //                 // add this voxel to that piece
-    //                 std::vector<int> newVoxels;
-    //                 newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
-    //                 g_puzzle->get_piece_at(pieceNum)->second.add_voxels(newVoxels);
-    //             } 
-    //         }
-    //     }
-    // }
+                    // add this voxel to that piece
+                    // std::vector<int> newVoxels;
+                    // newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
+                    // g_puzzle->get_piece_at(pieceNum)->second->add_voxels(newVoxels);
 
-    // g_puzzle->check_contiguous(g_voxelGrid -> m_dimX, g_voxelGrid -> m_dimY, g_voxelGrid -> m_dimZ);
-    // std::cout << "updating the voxel grid" << std::endl;
-    // g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
+                    // add a single voxel to the piece
+                    int new_voxel_id = k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i;
+                    g_puzzle->get_piece_at(pieceNum)->second->add_voxel(new_voxel_id);
+                } 
+            }
+        }
+    }
+
+    g_puzzle->check_contiguous(g_voxelGrid -> m_dimX, g_voxelGrid -> m_dimY, g_voxelGrid -> m_dimZ);
+    std::cout << "updating the voxel grid" << std::endl;
+    g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
 
     /////////////
     /////////////
@@ -473,4 +477,5 @@ int main(int argc, char **argv) {
 
     saveVoxelsToObj(dividedfile.c_str(), true, true);
     delete g_voxelGrid;
+    delete g_puzzle;
 }

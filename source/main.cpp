@@ -267,33 +267,22 @@ void initializePuzzle(unsigned int dim) {
     g_puzzle = new CompFab::Puzzle(dim,dim,dim);
 }
 
-int main(int argc, char **argv) {
+void setVoxelColors() {
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
 
-    unsigned int dim = 32; //dimension of voxel grid (e.g. 32x32x32)
+                // setting the voxel color here
+                unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
+                srand(pieceNum);
 
-    //Load OBJ
-    if(argc < 3)
-    {
-        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename \n";
-        return 0;
+                g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
+            }
+        }
     }
-    
-    std::cout<<"Load Mesh : "<<argv[1]<<"\n";
-    loadMesh(argv[1], dim); 
-    
-    unsigned int PIECE_SIZE = 10;
+}
 
-    std::cout<<"Creating Puzzle : "<<"\n";
-    initializePuzzle(dim/PIECE_SIZE);
-
-
-    std::clock_t start;
-    start = std::clock();
-
-    initializeVoxelGrid(argv, dim);
-    std::cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
-
-    std::cout << "starting surface analysis" << std::endl;
+void doSurfaceAnalysis() {
     bool top, bottom, left, right, fwd, bck;
     
     for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
@@ -316,6 +305,8 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    return;
 
     // do another layer for structural integrity
     std::vector<int> secondLayer;
@@ -343,8 +334,51 @@ int main(int argc, char **argv) {
     std::cout << "second layer has size: " << secondLayer.size() << std::endl;
 
     for (int i = 0; i < secondLayer.size(); i++ ) {
-        g_voxelGrid -> setOnSurface(secondLayer[i]);
+        g_voxelGrid->setOnSurface(secondLayer[i]);
     }
+}
+
+// int main(int argc, char **argv) {
+//     std::map<unsigned int, CompFab::PuzzlePiece*> m;
+
+//     m[1] = new CompFab::PuzzlePiece(1);
+
+//     int a = 1/0;
+//     return 0;
+// }
+
+int main(int argc, char **argv) {
+    unsigned int dim = 32; //dimension of voxel grid (e.g. 32x32x32)
+
+    //Load OBJ
+    if(argc < 3)
+    {
+        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename \n";
+        return 0;
+    }
+    
+    std::cout<<"Load Mesh : "<<argv[1]<<"\n";
+    loadMesh(argv[1], dim); 
+    
+    unsigned int PIECE_SIZE = 10;
+
+    std::cout<<"Creating Puzzle : "<<"\n";
+    initializePuzzle(dim/PIECE_SIZE);
+
+
+    std::clock_t start;
+    start = std::clock();
+
+    /////////////
+    /////////////
+    /////////////
+
+    initializeVoxelGrid(argv, dim);
+    std::cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+
+    std::cout << "starting surface analysis" << std::endl;
+
+    doSurfaceAnalysis();
 
     std::cout << "finished surface analysis" << std::endl;
 
@@ -353,56 +387,71 @@ int main(int argc, char **argv) {
 
     saveVoxelsToObj(surfacefile.c_str(), true, false);
 
-    std::cout << "starting divisions" << std::endl;
-    unsigned int newx, newy, newz, pieceNum;
-    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
-        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
-            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
-                // only do this if we have a solid piece, not air
-                if (g_voxelGrid->isOnSurface(i, j, k)) {
-                    newx = i/PIECE_SIZE;
-                    newy = j/PIECE_SIZE;
-                    newz = k/PIECE_SIZE;
-                    pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
-                    g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
+    /////////////
+    /////////////
+    /////////////
 
-                    // create the piece in the puzzle struct
-                    if (!g_puzzle->has_piece_at(i,j,k)) {
-                        g_puzzle->add_piece(pieceNum);
-                    }
+    // std::cout << "starting divisions" << std::endl;
+    // unsigned int newx, newy, newz, pieceNum;
+    // for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+    //     for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+    //         for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+    //             // only do this if we have a solid piece, not air
+    //             if (g_voxelGrid->isOnSurface(i, j, k)) {
+    //                 newx = i/PIECE_SIZE;
+    //                 newy = j/PIECE_SIZE;
+    //                 newz = k/PIECE_SIZE;
+    //                 pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
+    //                 g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
 
-                    // add this voxel to that piece
-                    std::vector<int> newVoxels;
-                    newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
-                    g_puzzle->get_piece_at(pieceNum)->second.add_voxels(newVoxels);
+    //                 // create the piece in the puzzle struct
+    //                 if (!g_puzzle->has_piece_at(i,j,k)) {
+    //                     g_puzzle->add_piece(pieceNum);
+    //                 }
 
-                    // std::stringstream val;
+    //                 // add this voxel to that piece
+    //                 std::vector<int> newVoxels;
+    //                 newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
+    //                 g_puzzle->get_piece_at(pieceNum)->second.add_voxels(newVoxels);
+    //             } 
+    //         }
+    //     }
+    // }
 
-                    // val << g_puzzle->get_piece_at(pieceNum)->second.getID();
+    // g_puzzle->check_contiguous(g_voxelGrid -> m_dimX, g_voxelGrid -> m_dimY, g_voxelGrid -> m_dimZ);
+    // std::cout << "updating the voxel grid" << std::endl;
+    // g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
 
-                    // std::cout << "piece num" << val.str() << std::endl;
-                } 
-            }
-        }
-    }
+    /////////////
+    /////////////
+    /////////////
 
-    g_puzzle -> check_contiguous(g_voxelGrid -> m_dimX, g_voxelGrid -> m_dimY, g_voxelGrid -> m_dimZ);
-    std::cout << "updating hte voxel grid" << std::endl;
+    std::cout << "merging small parts together" << std::endl;
+    // iterate over all puzzle pieces
+    // if it has too small size, merge with the piece with the largest neighbors
 
-    g_voxelGrid -> updatePiecesFromPuzzle(g_puzzle);
+    // std::vector<CompFab::PuzzlePiece> allPieces = g_puzzle->get_pieces();
+    // std::vector<CompFab::PuzzlePiece>::iterator itr;
+    // for (itr = allPieces.begin(); itr < allPieces.end(); ++itr) {
+    //     // CompFab::PuzzlePiece piece = (CompFab::PuzzlePiece) *itr;
 
-    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
-        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
-            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+    //     // if (piece.size() < 10) {
+    //     //     // its too small
+    //     //     // std::cout << "found too small piece" << piece.size() << std::endl;
+    //     // }
+    // }
 
-                // setting the voxel color here
-                unsigned int pieceNum = g_voxelGrid->getPieceNum(i,j,k);
-                srand(pieceNum);
+    // for (CompFab::PuzzlePiece piece : allPieces) {
 
-                g_voxelGrid->setVoxelColor(i,j,k, getRandomColor(),getRandomColor(),getRandomColor());
-            }
-        }
-    }
+    // }
+
+
+    std::cout << "done merging" << std::endl;
+    /////////////
+    /////////////
+    /////////////
+
+    setVoxelColors();
 
     int surfaces = 0;
     int pieces = 0;

@@ -434,20 +434,17 @@ int main(int argc, char **argv) {
     // iterate over all puzzle pieces
     // if it has too small size, merge with the piece with the largest neighbors
 
-    // std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
-    // std::vector<CompFab::PuzzlePiece>::iterator itr;
-    // for (itr = allPieces.begin(); itr < allPieces.end(); ++itr) {
-    //     // CompFab::PuzzlePiece piece = (CompFab::PuzzlePiece) *itr;
-
-    //     // if (piece.size() < 10) {
-    //     //     // its too small
-    //     //     // std::cout << "found too small piece" << piece.size() << std::endl;
-    //     // }
-    // }
-
-    // for (CompFab::PuzzlePiece piece : allPieces) {
-
-    // }
+    std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
+    std::vector<CompFab::PuzzlePiece*>::iterator itr;
+    for (itr = allPieces.begin(); itr != allPieces.end(); ++itr) {
+        // std::cout << "woah " << (*itr) << std::endl;
+        CompFab::PuzzlePiece* piece = *itr;
+        // std::cout << "woah " << piece->getID() << std::endl;
+        if (piece->size() < 10) {
+            // its too small
+            std::cout << "found too small piece size: " << piece->size()<<" id: " << piece->getID() << std::endl;
+        }
+    }
 
 
     std::cout << "done merging" << std::endl;

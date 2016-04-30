@@ -192,10 +192,14 @@ namespace CompFab
 
         // get all the puzzle pieces
         inline std::vector<PuzzlePiece*> get_pieces() {
-            std::vector<PuzzlePiece> output;
+            std::vector<PuzzlePiece*> output;
             for (std::map<unsigned int, PuzzlePiece*>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
-                output.push_back(*(it->second));
+                // std::cout << "nice " << it->second->getID() <<" " << it->second->size() <<std::endl;
+                // std::cout << it->second << std::endl;
+                output.push_back((it->second));
             }
+
+            return output;
         }
 
         // adds a piece into the puzzle by id
@@ -252,10 +256,6 @@ namespace CompFab
                 // m_pieceList.insert(std::make_pair<unsigned int, PuzzlePiece>(newPieces[i].getID(), *newPieces[i]));
                 m_pieceList[newPieces[i].getID()] = piece;
             }
-
-
-            return;
-
         }
 
         // merge_pieces(id1, id2)

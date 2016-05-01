@@ -9,6 +9,7 @@
 #define voxelizer_CompFab_h
 
 #define EPSILON 1e-9
+#define MIN_PIECE_SIZE 25
 
 #include <cmath>
 #include <map>
@@ -207,7 +208,6 @@ namespace CompFab
             if (m_pieceList.count(id) <= 0) {
                 // not in the map yet 
                 m_pieceList.insert(std::make_pair<unsigned int, PuzzlePiece*>(id, new PuzzlePiece(id)));
-                // m_pieceList[id] = new PuzzlePiece(id);
             }
         }
 
@@ -224,11 +224,21 @@ namespace CompFab
             return m_pieceList.count(k*(m_dimX*m_dimY)+j*m_dimY + i) > 0;
         }
 
+        inline bool has_piece_at(int index) {
+            return m_pieceList.count(index) > 0;
+        }
+
         inline std::map<unsigned int, PuzzlePiece*>::iterator get_piece_at(unsigned int id) {
             // the iterator is the object of key->value that the map actually stores
             // the value is thus found by get_piece_at(ID_HERE)->second
             return m_pieceList.find(id);
         }
+
+        // inline PuzzlePiece* get_piece_at(unsigned int id) {
+        //     // the iterator is the object of key->value that the map actually stores
+        //     // the value is thus found by get_piece_at(ID_HERE)->second
+        //     return m_pieceList.find(id)->second;
+        // }
 
         inline void check_contiguous(unsigned int gridX, unsigned int gridY, unsigned int gridZ) {
             // loop through all pieces,
@@ -319,6 +329,21 @@ namespace CompFab
 
         inline int getArrayIndexByCoordinate(unsigned int i, unsigned int j, unsigned int k) {
             return k*(m_dimX*m_dimY)+j*m_dimY + i;
+        }
+
+        // getting another voxel index via translation in the x direction (i)
+        inline int getArrayIndexFromAnotherIndexViaTranslation_x(int index, unsigned int x_offset) {
+            return index + x_offset;
+        }
+
+        // getting another voxel index via translation in the y direction (j)
+        inline int getArrayIndexFromAnotherIndexViaTranslation_y(int index, unsigned int y_offset) {
+            return index + y_offset*m_dimY;
+        }
+
+        // getting another voxel index via translation in the z direction (k)
+        inline int getArrayIndexFromAnotherIndexViaTranslation_z(int index, unsigned int z_offset) {
+            return index + z_offset*(m_dimX*m_dimY);
         }
 
         // colors

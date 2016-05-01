@@ -39,7 +39,7 @@ int rayTriangleIntersection(CompFab::Ray &ray, CompFab::Triangle &triangle)
     // dot normal of triangle with ray direction
     CompFab::Vec3 triangle_norm = e1 % e2;
     double check = triangle_norm * ray.m_direction;
-    if (std::abs(check) < 1e-6 ) {
+    if (std::abs(check) < EPSILON ) {
         return 0; //this means it is perpendicular to the normal and will not intersect
     }
 
@@ -338,17 +338,123 @@ void doSurfaceAnalysis() {
     }
 }
 
-// int main(int argc, char **argv) {
-//     std::map<unsigned int, CompFab::PuzzlePiece*> m;
+void mergeSmallParts() {
+    // iterate over all puzzle pieces
+    // if it has too small size, merge with the piece with the largest neighbors
 
-//     m[1] = new CompFab::PuzzlePiece(1);
+    // keeping track of neighboring pieces
+    // piece ID -> number of neighbors
+    std::map<unsigned int, unsigned int> neighbor_count;
 
-//     int a = 1/0;
-//     return 0;
-// }
+    // the iterators
+    std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
+    std::vector<CompFab::PuzzlePiece*>::iterator itr;
+    for (itr = allPieces.begin(); itr != allPieces.end(); ++itr) {
+        CompFab::PuzzlePiece* piece = *itr;
+        if (piece->size() < MIN_PIECE_SIZE) {
+            // its too small
+            // std::cout << "found too small piece size: " << piece->size()<< " id: " << piece->getID() << std::endl;
+
+            neighbor_count.clear();
+            int ourPieceNum = piece->getID();
+
+            // iterate over all its voxels now
+            std::vector<int>* voxelsOnPiece = piece->getVoxels();
+
+            for (std::vector<int>::iterator voxelIterator = voxelsOnPiece->begin(); voxelIterator != voxelsOnPiece->end(); ++voxelIterator) {
+                int currentVoxelIndex = *voxelIterator;
+                // std::cout << "\non voxel id  " << currentVoxelIndex << std::endl;
+
+                // check its neighbors 
+                int neighbor_voxel_index;
+
+                for (int i=0; i<6; i++) {
+                    switch (i) {
+                        case 0:
+                            // left 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_x(currentVoxelIndex, -1);
+                            break;
+                        case 1:
+                            // right 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_x(currentVoxelIndex, +1);
+                            break;
+                        case 2:
+                            // forward 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_y(currentVoxelIndex, -1);
+                            break;
+                        case 3:
+                            // back 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_y(currentVoxelIndex, +1);
+                            break;
+                        case 4:
+                            // top 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_z(currentVoxelIndex, -1);
+                            break;
+                        case 5:
+                            // bottom 
+                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_z(currentVoxelIndex, +1);
+                            break;
+                    }
+
+                    // check bounds
+                    if (neighbor_voxel_index < 0 || neighbor_voxel_index >= g_voxelGrid->m_size) {
+                        // out of bounds, skip
+                        continue;
+                    }
+
+                    // check the piece num
+                    int neighborPieceNum = g_voxelGrid->getPieceNum(neighbor_voxel_index);
+                    if (!g_puzzle->has_piece_at(neighborPieceNum) || neighborPieceNum == ourPieceNum) {
+                        continue;
+                    }
+
+                    if (neighbor_count.count(neighborPieceNum) > 0) {
+                        // already exists
+                        neighbor_count[neighborPieceNum]++;
+                    } else {
+                        neighbor_count[neighborPieceNum] = 1;
+                    }
+
+                    // std::cout << neighborPieceNum << " size " << neighbor_count[neighborPieceNum] << std::endl;
+                }
+            }
+
+            // find what piece to merge into
+            int maxNeighbors = -1;
+            int pieceNumToMergeInto = -1;
+            for (std::map<unsigned int, unsigned int>::iterator it = neighbor_count.begin(); it != neighbor_count.end(); it++) {
+                int num_neighbors = (it->second);
+                if (num_neighbors > maxNeighbors) {
+                    pieceNumToMergeInto = it->first;
+                    maxNeighbors = num_neighbors;
+                }
+            }
+
+            if (pieceNumToMergeInto == -1) {
+                continue;
+            }
+
+            // std::cout << "merging into  " << pieceNumToMergeInto << std::endl;
+            // std::cout << g_puzzle->m_pieceList.count(pieceNumToMergeInto) << std::endl;
+            // so we have two pieces
+            // source and target
+            // target needs to absorb all of source's voxels
+            CompFab::PuzzlePiece* targetPiece = g_puzzle->get_piece_at(pieceNumToMergeInto)->second;
+
+            std::vector<int>* voxelsOnPiece2 = piece->getVoxels();
+            for (std::vector<int>::iterator voxelIterator2 = voxelsOnPiece2->begin(); voxelIterator2 != voxelsOnPiece2->end(); ++voxelIterator2) {
+                int currentVoxelIndex = *voxelIterator2;
+                targetPiece->add_voxel(currentVoxelIndex);
+            }
+
+            g_puzzle->remove_piece(piece->getID());
+        }
+        g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
+    }
+}
 
 int main(int argc, char **argv) {
-    unsigned int dim = 32; //dimension of voxel grid (e.g. 32x32x32)
+    unsigned int dim = 64; //dimension of voxel grid (e.g. 32x32x32)
 
     //Load OBJ
     if(argc < 3)
@@ -401,7 +507,7 @@ int main(int argc, char **argv) {
                     newx = i/PIECE_SIZE;
                     newy = j/PIECE_SIZE;
                     newz = k/PIECE_SIZE;
-                    pieceNum = newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
+                    pieceNum = 1 + newz*(g_voxelGrid -> m_dimX/PIECE_SIZE*g_voxelGrid ->m_dimY/PIECE_SIZE)+newy*g_voxelGrid ->m_dimY/PIECE_SIZE + newx;
                     g_voxelGrid -> setPieceNum(i, j, k, pieceNum);
 
                     // create the piece in the puzzle struct
@@ -414,10 +520,11 @@ int main(int argc, char **argv) {
                     // newVoxels.push_back(k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i);
                     // g_puzzle->get_piece_at(pieceNum)->second->add_voxels(newVoxels);
 
+                    // std::cout << "piece " << pieceNum << std::endl;
                     // add a single voxel to the piece
                     int new_voxel_id = k*(g_voxelGrid -> m_dimX*g_voxelGrid ->m_dimY)+j*g_voxelGrid ->m_dimY + i;
                     g_puzzle->get_piece_at(pieceNum)->second->add_voxel(new_voxel_id);
-                } 
+                }
             }
         }
     }
@@ -431,22 +538,7 @@ int main(int argc, char **argv) {
     /////////////
 
     std::cout << "merging small parts together" << std::endl;
-    // iterate over all puzzle pieces
-    // if it has too small size, merge with the piece with the largest neighbors
-
-    std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
-    std::vector<CompFab::PuzzlePiece*>::iterator itr;
-    for (itr = allPieces.begin(); itr != allPieces.end(); ++itr) {
-        // std::cout << "woah " << (*itr) << std::endl;
-        CompFab::PuzzlePiece* piece = *itr;
-        // std::cout << "woah " << piece->getID() << std::endl;
-        if (piece->size() < 10) {
-            // its too small
-            std::cout << "found too small piece size: " << piece->size()<<" id: " << piece->getID() << std::endl;
-        }
-    }
-
-
+    mergeSmallParts();
     std::cout << "done merging" << std::endl;
     /////////////
     /////////////

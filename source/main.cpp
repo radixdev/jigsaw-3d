@@ -459,8 +459,12 @@ int main(int argc, char **argv) {
     //Load OBJ
     if(argc < 3)
     {
-        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename \n";
+        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename (optional dimension integer)\n";
         return 0;
+    }
+
+    if (argc >= 4) {
+        dim = atoi(argv[3]);
     }
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";

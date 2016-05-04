@@ -157,6 +157,7 @@ CompFab::VoxelGridStruct::VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, uns
     m_surfaceArray = new bool[m_size];
     m_pieceNumArray = new unsigned int[m_size];
     m_color_array = new double[m_size*3];
+    m_voxelToLocationMapping = new Vec3*[m_size];
 
     for(unsigned int ii=0; ii<m_size; ++ii) {
         m_insideArray[ii] = false;
@@ -167,6 +168,9 @@ CompFab::VoxelGridStruct::VoxelGridStruct(Vec3 lowerLeft, unsigned int dimX, uns
         m_color_array[ii*3] = 0.0;
         m_color_array[ii*3 + 1] = 0.0;
         m_color_array[ii*3 + 2] = 0.0;
+
+        // voxel -> location
+        m_voxelToLocationMapping[ii] = new Vec3();
     }
     
 }
@@ -176,6 +180,7 @@ CompFab::VoxelGridStruct::~VoxelGridStruct()
     delete[] m_insideArray;
     delete[] m_surfaceArray;    
     delete[] m_pieceNumArray;
+    delete[] m_voxelToLocationMapping;
 }
 
 //Class structure for puzzle pieces

@@ -247,7 +247,7 @@ void initializeVoxelGrid(char **argv, unsigned int dim) {
                     }
                 }
 
-                std::cout << "progress: " <<k << " of " << (g_voxelGrid->m_dimZ - 1) << std::endl;
+                std::cout << "progress: " << k << " of " << (g_voxelGrid->m_dimZ - 1) << std::endl;
             }
         }
         
@@ -260,6 +260,16 @@ void initializeVoxelGrid(char **argv, unsigned int dim) {
 
         // save voxel data as VOX file
         saveVoxelGrid(voxelSaveFile.c_str(), *g_voxelGrid);
+    }
+
+    // create the mapping stuff
+    for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
+        for (int j = 0; j < g_voxelGrid -> m_dimY; j++) {
+            for (int i = 0; i < g_voxelGrid -> m_dimX; i++) {
+                int voxelIndex = g_voxelGrid->getArrayIndexByCoordinate(i,j,k);
+                g_voxelGrid->m_voxelToLocationMapping[voxelIndex] = new CompFab::Vec3(i,j,k);
+            }
+        }
     }
 }
 
@@ -369,36 +379,8 @@ void mergeSmallParts() {
                 int neighbor_voxel_index;
 
                 for (int i=0; i<6; i++) {
-                    switch (i) {
-                        case 0:
-                            // left 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_x(currentVoxelIndex, -1);
-                            break;
-                        case 1:
-                            // right 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_x(currentVoxelIndex, +1);
-                            break;
-                        case 2:
-                            // forward 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_y(currentVoxelIndex, -1);
-                            break;
-                        case 3:
-                            // back 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_y(currentVoxelIndex, +1);
-                            break;
-                        case 4:
-                            // top 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_z(currentVoxelIndex, -1);
-                            break;
-                        case 5:
-                            // bottom 
-                            neighbor_voxel_index = g_voxelGrid->getArrayIndexFromAnotherIndexViaTranslation_z(currentVoxelIndex, +1);
-                            break;
-                    }
-
-                    // check bounds
-                    if (neighbor_voxel_index < 0 || neighbor_voxel_index >= g_voxelGrid->m_size) {
-                        // out of bounds, skip
+                    neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(currentVoxelIndex, i);
+                    if (neighbor_voxel_index == -1) {
                         continue;
                     }
 
@@ -443,13 +425,104 @@ void mergeSmallParts() {
 
             std::vector<int>* voxelsOnPiece2 = piece->getVoxels();
             for (std::vector<int>::iterator voxelIterator2 = voxelsOnPiece2->begin(); voxelIterator2 != voxelsOnPiece2->end(); ++voxelIterator2) {
-                int currentVoxelIndex = *voxelIterator2;
-                targetPiece->add_voxel(currentVoxelIndex);
+                targetPiece->add_voxel(*voxelIterator2);
             }
 
             g_puzzle->remove_piece(piece->getID());
         }
         g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
+    }
+}
+
+void addNubsToPieces() {
+    // the iterators
+    std::vector<CompFab::PuzzlePiece*> allPieces = g_puzzle->get_pieces();
+    std::vector<CompFab::PuzzlePiece*>::iterator itr;
+    for (itr = allPieces.begin(); itr != allPieces.end(); ++itr) {
+        CompFab::PuzzlePiece* piece = *itr;
+
+        // get perimeter voxels
+            // get pv's with a common neighbor (exactly 1 neighbor though)
+            // take average pos of these
+            // nub out from avg loc
+
+        // perimeter voxels have exactly 1 non-self neighbor on any side
+
+        int ourPieceNum = piece->getID();
+
+        // iterate over all its voxels now
+        std::vector<int>* voxelsOnPiece = piece->getVoxels();
+
+        std::map<int, CompFab::Vec3> sumOfPerimeterVoxelPositionsOnSameNeighborPiece;
+        std::map<int, int> numPerimeterVoxelsOnSameNeighbor;
+
+        for (std::vector<int>::iterator voxelIterator = voxelsOnPiece->begin(); voxelIterator != voxelsOnPiece->end(); ++voxelIterator) {
+            int currentVoxelIndex = *voxelIterator;
+
+            // check its neighbors 
+            int neighbor_voxel_index;
+            bool meetsPerimeterCheck = false;
+            int perimeterNeighborPieceNum = -1;
+
+            // find the neighbors
+            for (int i=0; i<6; i++) {
+                neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(currentVoxelIndex, i);
+                if (neighbor_voxel_index == -1) {
+                    continue;
+                }
+
+                int neighborPieceNum = g_voxelGrid->getPieceNum(neighbor_voxel_index);
+                if (!g_puzzle->has_piece_at(neighborPieceNum) || neighborPieceNum == ourPieceNum) {
+                    continue;
+                }
+
+                // check for its neighbors
+                // if it only has 1 non-self neighbor
+                    // record that neighbor
+                    // record this voxel's pos
+
+                // std::cout <<ourPieceNum<< " "<< neighborPieceNum << std::endl;
+                // its a non-self neighbor, check if we've already found one already tho
+                if (perimeterNeighborPieceNum == -1) {
+                    // its the first non-self neighbor, mark it and we're good
+                    meetsPerimeterCheck = true;
+                    perimeterNeighborPieceNum = neighborPieceNum;
+                } else if (perimeterNeighborPieceNum == neighborPieceNum) {
+                    // found the same neighbor again, do nothing
+                } else {
+                    // we already found one that isn't this one! invalid since there are multiple of the same neighbor
+                    meetsPerimeterCheck = false;
+                    break;
+                }
+            }
+
+            // update info on the borders
+            if (meetsPerimeterCheck) {
+                // g_voxelGrid->m_surfaceArray[currentVoxelIndex] = false;
+                // it has 1 neighbor
+                // std::cout << "fousnd just 1 neighbor" << std::endl;
+
+                if (numPerimeterVoxelsOnSameNeighbor.count(perimeterNeighborPieceNum) == 0) {
+                    //make the first entry
+                    numPerimeterVoxelsOnSameNeighbor[perimeterNeighborPieceNum] = 1;
+                    sumOfPerimeterVoxelPositionsOnSameNeighborPiece[perimeterNeighborPieceNum] = *g_voxelGrid->getVoxelLocationByIndex(currentVoxelIndex);
+                } else {
+                    // increment stuff
+                    numPerimeterVoxelsOnSameNeighbor[perimeterNeighborPieceNum]++;
+                    sumOfPerimeterVoxelPositionsOnSameNeighborPiece[perimeterNeighborPieceNum] += *g_voxelGrid->getVoxelLocationByIndex(currentVoxelIndex);
+                }
+            }
+        }
+
+        // we now have the perimeter piece info and can determine the midpoint location
+        // of each face to nub out from
+
+        // for each neighbor piece from the perimeter maps
+            // determine if we're nubbing into them or they're nubbing into us 
+                // (if the latter then just continue on)
+            // determine the midpoint
+            // find which of our voxels is the closest to that point
+            // nub out into the neighbor
     }
 }
 
@@ -544,6 +617,11 @@ int main(int argc, char **argv) {
     std::cout << "merging small parts together" << std::endl;
     mergeSmallParts();
     std::cout << "done merging" << std::endl;
+    /////////////
+    /////////////
+    /////////////
+    std::cout << "nubbing pieces" << std::endl;
+    addNubsToPieces();
     /////////////
     /////////////
     /////////////

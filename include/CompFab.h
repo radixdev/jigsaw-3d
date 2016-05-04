@@ -9,7 +9,7 @@
 #define voxelizer_CompFab_h
 
 #define EPSILON 1e-9
-#define MIN_PIECE_SIZE 25
+#define MIN_PIECE_SIZE 30
 
 #include <cmath>
 #include <map>
@@ -195,8 +195,6 @@ namespace CompFab
         inline std::vector<PuzzlePiece*> get_pieces() {
             std::vector<PuzzlePiece*> output;
             for (std::map<unsigned int, PuzzlePiece*>::iterator it = m_pieceList.begin(); it != m_pieceList.end(); it++) {
-                // std::cout << "nice " << it->second->getID() <<" " << it->second->size() <<std::endl;
-                // std::cout << it->second << std::endl;
                 output.push_back((it->second));
             }
 
@@ -346,6 +344,46 @@ namespace CompFab
             return index + z_offset*(m_dimX*m_dimY);
         }
 
+        // get one of the 6 neighbors
+        // index is the index of the voxel we're neighboring from
+        // offset is in range [0,5]
+        inline int getNeighborVoxelIndexFromOffset(int index, int offset) {
+            // check its neighbors 
+            int neighbor_voxel_index;
+            switch (offset) {
+                case 0:
+                    // left 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_x(index, -1); break;
+                case 1:
+                    // right 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_x(index, +1); break;
+                case 2:
+                    // forward 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_y(index, -1); break;
+                case 3:
+                    // back 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_y(index, +1); break;
+                case 4:
+                    // top 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_z(index, -1); break;
+                case 5:
+                    // bottom 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_z(index, +1); break;
+            }
+
+            // check bounds
+            if (neighbor_voxel_index < 0 || neighbor_voxel_index >= m_size) {
+                // out of bounds, return bad
+                return -1;
+            }
+
+            return neighbor_voxel_index;
+        }
+
+        inline Vec3* getVoxelLocationByIndex(int index) {
+            return m_voxelToLocationMapping[index];
+        }
+
         // colors
         inline double getVoxelColor_r(unsigned int i, unsigned int j, unsigned int k) {
             return m_color_array[getArrayIndexByCoordinate(i,j,k)*3];
@@ -397,6 +435,9 @@ namespace CompFab
         // color info
         // 3* # vertices for (r,g,b)
         double *m_color_array;
+
+        // voxel -> i,j,k mapping
+        Vec3* *m_voxelToLocationMapping;
         
     } VoxelGrid;
 

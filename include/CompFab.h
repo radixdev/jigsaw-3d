@@ -9,7 +9,6 @@
 #define voxelizer_CompFab_h
 
 #define EPSILON 1e-9
-#define MIN_PIECE_SIZE 30
 
 #include <cmath>
 #include <map>
@@ -43,7 +42,8 @@ namespace CompFab
         }
         
         void normalize();
-        
+        void scale(double val);
+        double distanceSquaredTo(Vec3Struct* x);
     }Vec3;
 
     //Data Types
@@ -152,6 +152,14 @@ namespace CompFab
 
         inline void add_voxel(int voxel) {
             m_voxels.push_back(voxel);
+        }
+
+        inline std::vector<int> remove_voxel(int badVoxel) {
+            std::vector<int>::iterator found;
+            found = std::find(m_voxels.begin(), m_voxels.end(), badVoxel);
+            if (found != m_voxels.end()) {
+                m_voxels.erase(found);
+            }
         }
 
         // remove_voxels(std::vector<int>)
@@ -329,20 +337,25 @@ namespace CompFab
             return k*(m_dimX*m_dimY)+j*m_dimY + i;
         }
 
-        // getting another voxel index via translation in the x direction (i)
-        inline int getArrayIndexFromAnotherIndexViaTranslation_x(int index, unsigned int x_offset) {
-            return index + x_offset;
+        // getting another voxel index via translation
+        inline int getArrayIndexFromAnotherIndexViaTranslation(int index, unsigned int i, unsigned int j, unsigned int k) {
+            return index + getArrayIndexByCoordinate(i,j,k);
         }
 
-        // getting another voxel index via translation in the y direction (j)
-        inline int getArrayIndexFromAnotherIndexViaTranslation_y(int index, unsigned int y_offset) {
-            return index + y_offset*m_dimY;
-        }
+        // // getting another voxel index via translation in the x direction (i)
+        // inline int getArrayIndexFromAnotherIndexViaTranslation_x(int index, unsigned int x_offset) {
+        //     return index + x_offset;
+        // }
 
-        // getting another voxel index via translation in the z direction (k)
-        inline int getArrayIndexFromAnotherIndexViaTranslation_z(int index, unsigned int z_offset) {
-            return index + z_offset*(m_dimX*m_dimY);
-        }
+        // // getting another voxel index via translation in the y direction (j)
+        // inline int getArrayIndexFromAnotherIndexViaTranslation_y(int index, unsigned int y_offset) {
+        //     return index + y_offset*m_dimY;
+        // }
+
+        // // getting another voxel index via translation in the z direction (k)
+        // inline int getArrayIndexFromAnotherIndexViaTranslation_z(int index, unsigned int z_offset) {
+        //     return index + z_offset*(m_dimX*m_dimY);
+        // }
 
         // get one of the 6 neighbors
         // index is the index of the voxel we're neighboring from
@@ -351,24 +364,58 @@ namespace CompFab
             // check its neighbors 
             int neighbor_voxel_index;
             switch (offset) {
-                case 0:
-                    // left 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_x(index, -1); break;
-                case 1:
-                    // right 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_x(index, +1); break;
-                case 2:
-                    // forward 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_y(index, -1); break;
-                case 3:
-                    // back 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_y(index, +1); break;
-                case 4:
-                    // top 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_z(index, -1); break;
-                case 5:
-                    // bottom 
-                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation_z(index, +1); break;
+                case 0: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, -1, -1); break; 
+                case 1: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, -1, 0); break; 
+                case 2: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, -1, 1); break; 
+                case 3: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 0, -1); break; 
+                case 4: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 0, 0); break; 
+                case 5: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 0, 1); break; 
+                case 6: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 1, -1); break; 
+                case 7: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 1, 0); break; 
+                case 8: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, -1, 1, 1); break; 
+                case 9: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, -1, -1); break; 
+                case 10: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, -1, 0); break; 
+                case 11: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, -1, 1); break; 
+                case 12: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, 0, -1); break; 
+                case 13: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, 0, 1); break; 
+                case 14: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, 1, -1); break; 
+                case 15: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, 1, 0); break; 
+                case 16: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 0, 1, 1); break; 
+                case 17: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, -1, -1); break; 
+                case 18: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, -1, 0); break; 
+                case 19: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, -1, 1); break; 
+                case 20: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 0, -1); break; 
+                case 21: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 0, 0); break; 
+                case 22: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 0, 1); break; 
+                case 23: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 1, -1); break; 
+                case 24: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 1, 0); break; 
+                case 25: 
+                    neighbor_voxel_index = getArrayIndexFromAnotherIndexViaTranslation(index, 1, 1, 1); break; 
             }
 
             // check bounds

@@ -39,6 +39,16 @@ void CompFab::Vec3Struct::normalize() {
     }
 }
 
+double CompFab::Vec3Struct::distanceSquaredTo(Vec3* v2) {
+    return (v2->m_x - m_x)*(v2->m_x - m_x) + (v2->m_y - m_y)*(v2->m_y- m_y) + (v2->m_z - m_z)*(v2->m_z - m_z);
+}
+
+void CompFab::Vec3Struct::scale(double val) {
+    m_x *=val;
+    m_y *=val;
+    m_z *=val;
+}
+
 //Data Types
 CompFab::Vec3iStruct::Vec3iStruct()
 {

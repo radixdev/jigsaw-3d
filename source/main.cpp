@@ -348,7 +348,7 @@ void doSurfaceAnalysis() {
     }
 }
 
-void mergeSmallParts() {
+void mergeSmallParts(int MIN_PIECE_SIZE) {
     // iterate over all puzzle pieces
     // if it has too small size, merge with the piece with the largest neighbors
 
@@ -378,7 +378,7 @@ void mergeSmallParts() {
                 // check its neighbors 
                 int neighbor_voxel_index;
 
-                for (int i=0; i<6; i++) {
+                for (int i=0; i<26; i++) {
                     neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(currentVoxelIndex, i);
                     if (neighbor_voxel_index == -1) {
                         continue;
@@ -453,8 +453,14 @@ void addNubsToPieces() {
         // iterate over all its voxels now
         std::vector<int>* voxelsOnPiece = piece->getVoxels();
 
+        // neighbor id -> perimeter pos
         std::map<int, CompFab::Vec3> sumOfPerimeterVoxelPositionsOnSameNeighborPiece;
+        // neighbor id -> total perimeter voxels sharing border
         std::map<int, int> numPerimeterVoxelsOnSameNeighbor;
+        std::vector<int> allPieceNeighbors;
+
+        // every perimeter voxel to cut down on search time
+        std::vector<int> allPerimeterVoxels;
 
         for (std::vector<int>::iterator voxelIterator = voxelsOnPiece->begin(); voxelIterator != voxelsOnPiece->end(); ++voxelIterator) {
             int currentVoxelIndex = *voxelIterator;
@@ -465,7 +471,7 @@ void addNubsToPieces() {
             int perimeterNeighborPieceNum = -1;
 
             // find the neighbors
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<26; i++) {
                 neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(currentVoxelIndex, i);
                 if (neighbor_voxel_index == -1) {
                     continue;
@@ -481,7 +487,6 @@ void addNubsToPieces() {
                     // record that neighbor
                     // record this voxel's pos
 
-                // std::cout <<ourPieceNum<< " "<< neighborPieceNum << std::endl;
                 // its a non-self neighbor, check if we've already found one already tho
                 if (perimeterNeighborPieceNum == -1) {
                     // its the first non-self neighbor, mark it and we're good
@@ -498,19 +503,22 @@ void addNubsToPieces() {
 
             // update info on the borders
             if (meetsPerimeterCheck) {
+                allPerimeterVoxels.push_back(currentVoxelIndex);
                 // g_voxelGrid->m_surfaceArray[currentVoxelIndex] = false;
                 // it has 1 neighbor
-                // std::cout << "fousnd just 1 neighbor" << std::endl;
 
                 if (numPerimeterVoxelsOnSameNeighbor.count(perimeterNeighborPieceNum) == 0) {
                     //make the first entry
                     numPerimeterVoxelsOnSameNeighbor[perimeterNeighborPieceNum] = 1;
                     sumOfPerimeterVoxelPositionsOnSameNeighborPiece[perimeterNeighborPieceNum] = *g_voxelGrid->getVoxelLocationByIndex(currentVoxelIndex);
+                    allPieceNeighbors.push_back(perimeterNeighborPieceNum);
                 } else {
                     // increment stuff
                     numPerimeterVoxelsOnSameNeighbor[perimeterNeighborPieceNum]++;
                     sumOfPerimeterVoxelPositionsOnSameNeighborPiece[perimeterNeighborPieceNum] += *g_voxelGrid->getVoxelLocationByIndex(currentVoxelIndex);
                 }
+            } else {
+                // g_voxelGrid->m_surfaceArray[currentVoxelIndex] = false;
             }
         }
 
@@ -523,21 +531,87 @@ void addNubsToPieces() {
             // determine the midpoint
             // find which of our voxels is the closest to that point
             // nub out into the neighbor
+
+        // std::cout << "total neighbors" <<allPieceNeighbors.size() << std::endl;
+        for (std::vector<int>::iterator neighborIterator = allPieceNeighbors.begin(); neighborIterator != allPieceNeighbors.end(); ++neighborIterator) {
+            int currentNeighborPieceNum = *neighborIterator;
+
+            // determine who's nubbing who
+            if (ourPieceNum > currentNeighborPieceNum) {
+                continue;
+            }
+
+            // now we determine the midpoint of the shared border
+            CompFab::Vec3 nubPotentialLocation = sumOfPerimeterVoxelPositionsOnSameNeighborPiece[currentNeighborPieceNum];
+            double borderCount = (double) numPerimeterVoxelsOnSameNeighbor[currentNeighborPieceNum];
+
+            // now we know the average location along the border, where the nub should go
+            // now we have to find which voxel is closest to this point
+            nubPotentialLocation.scale(1.0/borderCount);
+
+            double closestDistance = 10000;
+            int closestVoxelIndex = -1;
+            for (std::vector<int>::iterator perimeterVoxelIterator = allPerimeterVoxels.begin(); perimeterVoxelIterator != allPerimeterVoxels.end(); ++perimeterVoxelIterator) {
+                int perimeterVoxelIndex = *perimeterVoxelIterator;
+
+                double dist = nubPotentialLocation.distanceSquaredTo(g_voxelGrid->getVoxelLocationByIndex(perimeterVoxelIndex));
+
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestVoxelIndex = perimeterVoxelIndex;
+                }
+            }
+
+            // check if we actually found somehting
+            if (closestVoxelIndex != -1) {
+                // found a place to nub from!
+                // g_voxelGrid->m_surfaceArray[closestVoxelIndex] = false;
+                // grab the puzzle piece of the neighbor for the nubbing process
+                CompFab::PuzzlePiece* nubbingNeighborPiece = g_puzzle->get_piece_at(currentNeighborPieceNum)->second;
+
+                // find the neighbors and nub into them
+                for (int i=0; i<26; i++) {
+                    int neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(closestVoxelIndex, i);
+                    if (neighbor_voxel_index == -1) {
+                        continue;
+                    }
+
+                    int neighborPieceNum = g_voxelGrid->getPieceNum(neighbor_voxel_index);
+                    if (!g_puzzle->has_piece_at(neighborPieceNum) || neighborPieceNum == ourPieceNum) {
+                        continue;
+                    }
+
+                    // ensure that we're nubbing into the correct neighbor
+                    if (neighborPieceNum != currentNeighborPieceNum) {
+                        continue;
+                    }
+
+                    // swap the target with our own piece
+                    piece->add_voxel(neighbor_voxel_index);
+                    nubbingNeighborPiece->remove_voxel(neighbor_voxel_index);
+                    g_voxelGrid->m_surfaceArray[neighbor_voxel_index] = false;
+                }
+            }
+        }
     }
 }
 
 int main(int argc, char **argv) {
     unsigned int dim = 64; //dimension of voxel grid (e.g. 32x32x32)
+    int MIN_PIECE_SIZE = 100;
 
     //Load OBJ
-    if(argc < 3)
-    {
+    if(argc < 3) {
         std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename (optional dimension integer)\n";
         return 0;
     }
 
     if (argc >= 4) {
         dim = atoi(argv[3]);
+    }
+
+    if (argc >= 5) {
+        MIN_PIECE_SIZE = atoi(argv[4]);
     }
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";
@@ -615,13 +689,14 @@ int main(int argc, char **argv) {
     /////////////
 
     std::cout << "merging small parts together" << std::endl;
-    mergeSmallParts();
+    mergeSmallParts(MIN_PIECE_SIZE);
     std::cout << "done merging" << std::endl;
     /////////////
     /////////////
     /////////////
     std::cout << "nubbing pieces" << std::endl;
     addNubsToPieces();
+    g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
     /////////////
     /////////////
     /////////////

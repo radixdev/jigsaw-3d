@@ -182,6 +182,41 @@ void saveVoxelsToObj(const char * outfile, const bool checkSurface, const bool s
 
     std::cout << "saving: " << outfile << std::endl;
     mout.save_obj(outfile);
+}   
+
+// saves to obj
+void savePuzzleToObj(const char* outfileBase){
+    int gridX = g_voxelGrid->m_dimX;
+    int gridY = g_voxelGrid->m_dimY;
+    int gridZ = g_voxelGrid->m_dimZ;
+    double spacing = g_voxelGrid->m_spacing;
+    CompFab::Vec3 hspacing(0.5*spacing, 0.5*spacing, 0.5*spacing);
+
+    std::vector<CompFab::PuzzlePiece*> pieces = g_puzzle -> get_pieces();
+
+    for (int p = 0; p < pieces.size(); p++) {
+        Mesh box;
+        Mesh mout;
+        CompFab::PuzzlePiece* currentPiece = pieces[p];
+        std::vector<int>& voxels = *(currentPiece -> getVoxels()); 
+        for (int v = 0; v < voxels.size(); v++) {
+            int packedVox = voxels[v];
+            int ii = packedVox % gridY;
+            int jj = (packedVox-ii)/gridY % gridX;
+            int kk = ((packedVox-ii)/gridY - jj )/gridX;
+            CompFab::Vec3 coord(0.5f + ((double)ii)*spacing, 0.5f + ((double)jj)*spacing, 0.5f+((double)kk)*spacing);
+            CompFab::Vec3 box0 = coord - hspacing;
+            CompFab::Vec3 box1 = coord + hspacing;
+            makeCube(box, box0, box1, g_voxelGrid->getVoxelColor_r(ii,jj,kk), g_voxelGrid->getVoxelColor_g(ii,jj,kk), g_voxelGrid->getVoxelColor_b(ii,jj,kk));
+            mout.append(box);
+        }
+        std::string id;
+        std::stringstream convert;
+        convert << currentPiece -> getID();
+        id = convert.str();
+        mout.save_obj((std::string(outfileBase) + id + ".obj").c_str());
+    }
+
 }
 
 void initializeVoxelGrid(char **argv, unsigned int dim) {
@@ -316,8 +351,6 @@ void doSurfaceAnalysis() {
         }
     }
 
-    return;
-
     // do another layer for structural integrity
     std::vector<int> secondLayer;
     for (int k = 0; k < g_voxelGrid -> m_dimZ; k++) {
@@ -346,6 +379,8 @@ void doSurfaceAnalysis() {
     for (int i = 0; i < secondLayer.size(); i++ ) {
         g_voxelGrid->setOnSurface(secondLayer[i]);
     }
+
+    return;
 }
 
 void mergeSmallParts(int MIN_PIECE_SIZE) {
@@ -626,16 +661,16 @@ int main(int argc, char **argv) {
     int MIN_PIECE_SIZE = 100;
 
     //Load OBJ
-    if(argc < 3) {
-        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename (optional dimension integer)\n";
+    if(argc < 4) {
+        std::cout<<"Usage: Voxelizer InputMeshFilename OutputMeshFilename PieceMeshFilenameBase (optional dimension integer)\n";
         return 0;
     }
 
-    if (argc >= 4) {
+    if (argc >= 5) {
         dim = atoi(argv[3]);
     }
 
-    if (argc >= 5) {
+    if (argc >= 6) {
         MIN_PIECE_SIZE = atoi(argv[4]);
     }
     
@@ -719,7 +754,7 @@ int main(int argc, char **argv) {
     /////////////
     /////////////
     std::cout << "nubbing pieces" << std::endl;
-    addNubsToPieces();
+    //addNubsToPieces();
     g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
     /////////////
     /////////////
@@ -746,6 +781,7 @@ int main(int argc, char **argv) {
     std::cout << dividedfile << std::endl;
 
     saveVoxelsToObj(dividedfile.c_str(), true, true);
+    savePuzzleToObj(argv[3]);
     delete g_voxelGrid;
     delete g_puzzle;
 }

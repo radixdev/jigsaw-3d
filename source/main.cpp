@@ -570,26 +570,51 @@ void addNubsToPieces() {
                 CompFab::PuzzlePiece* nubbingNeighborPiece = g_puzzle->get_piece_at(currentNeighborPieceNum)->second;
 
                 // find the neighbors and nub into them
-                for (int i=0; i<26; i++) {
-                    int neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(closestVoxelIndex, i);
-                    if (neighbor_voxel_index == -1) {
-                        continue;
+
+                // the nubbing starts here and grows outward
+                int nubbingStartingVoxel = closestVoxelIndex;
+                int bestNewStartingVoxel = -1;
+                int bestNewStartingVoxelDistance = 10000;
+
+                for (int nubbingRound = 0; nubbingRound < 15; nubbingRound++) {
+                    for (int i=0; i<26; i++) {
+                        int neighbor_voxel_index = g_voxelGrid->getNeighborVoxelIndexFromOffset(nubbingStartingVoxel, i);
+                        if (neighbor_voxel_index == -1) {
+                            continue;
+                        }
+
+                        int neighborPieceNum = g_voxelGrid->getPieceNum(neighbor_voxel_index);
+                        if (!g_puzzle->has_piece_at(neighborPieceNum) || neighborPieceNum == ourPieceNum) {
+                            continue;
+                        }
+
+                        // ensure that we're nubbing into the correct neighbor
+                        if (neighborPieceNum != currentNeighborPieceNum) {
+                            continue;
+                        }
+
+                        // get the distance from nubbingStartingVoxel to the neighbor in question
+                        double distToThisNeighbor = g_voxelGrid->getVoxelLocationByIndex(nubbingStartingVoxel)->distanceSquaredTo(g_voxelGrid->getVoxelLocationByIndex(neighbor_voxel_index));
+                        if (distToThisNeighbor < bestNewStartingVoxelDistance) {
+                            bestNewStartingVoxelDistance = distToThisNeighbor;
+                            bestNewStartingVoxel = neighbor_voxel_index;
+                        }
+
+                        // swap the target with our own piece
+                        piece->add_voxel(neighbor_voxel_index);
+                        nubbingNeighborPiece->remove_voxel(neighbor_voxel_index);
+                        // g_voxelGrid->m_surfaceArray[neighbor_voxel_index] = false;
                     }
 
-                    int neighborPieceNum = g_voxelGrid->getPieceNum(neighbor_voxel_index);
-                    if (!g_puzzle->has_piece_at(neighborPieceNum) || neighborPieceNum == ourPieceNum) {
-                        continue;
+                    // get a new starting place or give up
+                    if (bestNewStartingVoxel != -1) {
+                        nubbingStartingVoxel = bestNewStartingVoxel;
+                        bestNewStartingVoxelDistance = 10000;
+                        bestNewStartingVoxel = -1;
+                    } else {
+                        // give up since we can't nub in a new place
+                        break;
                     }
-
-                    // ensure that we're nubbing into the correct neighbor
-                    if (neighborPieceNum != currentNeighborPieceNum) {
-                        continue;
-                    }
-
-                    // swap the target with our own piece
-                    piece->add_voxel(neighbor_voxel_index);
-                    nubbingNeighborPiece->remove_voxel(neighbor_voxel_index);
-                    g_voxelGrid->m_surfaceArray[neighbor_voxel_index] = false;
                 }
             }
         }
@@ -621,7 +646,6 @@ int main(int argc, char **argv) {
 
     std::cout<<"Creating Puzzle : "<<"\n";
     initializePuzzle(dim/PIECE_SIZE);
-
 
     std::clock_t start;
     start = std::clock();

@@ -602,7 +602,7 @@ void addNubsToPieces() {
                 // found a place to nub from!
                 // g_voxelGrid->m_surfaceArray[closestVoxelIndex] = false;
                 // grab the puzzle piece of the neighbor for the nubbing process
-                CompFab::PuzzlePiece* nubbingNeighborPiece = g_puzzle->get_piece_at(currentNeighborPieceNum)->second;
+                //CompFab::PuzzlePiece* nubbingNeighborPiece = g_puzzle->get_piece_at(currentNeighborPieceNum)->second;
 
                 // find the neighbors and nub into them
 
@@ -637,7 +637,7 @@ void addNubsToPieces() {
 
                         // swap the target with our own piece
                         piece->add_voxel(neighbor_voxel_index);
-                        nubbingNeighborPiece->remove_voxel(neighbor_voxel_index);
+                        g_puzzle->get_piece_at(currentNeighborPieceNum)->second->remove_voxel(neighbor_voxel_index);
                         // g_voxelGrid->m_surfaceArray[neighbor_voxel_index] = false;
                     }
 

@@ -154,7 +154,7 @@ namespace CompFab
             m_voxels.push_back(voxel);
         }
 
-        inline std::vector<int> remove_voxel(int badVoxel) {
+        inline void remove_voxel(int badVoxel) {
             std::vector<int>::iterator found;
             found = std::find(m_voxels.begin(), m_voxels.end(), badVoxel);
             if (found != m_voxels.end()) {

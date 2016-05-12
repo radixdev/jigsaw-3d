@@ -666,13 +666,13 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    if (argc >= 5) {
-        dim = atoi(argv[3]);
-    }
+    // if (argc >= 5) {
+    //     dim = atoi(argv[3]);
+    // }
 
-    if (argc >= 6) {
-        MIN_PIECE_SIZE = atoi(argv[4]);
-    }
+    // if (argc >= 6) {
+    //     MIN_PIECE_SIZE = atoi(argv[4]);
+    // }
     
     std::cout<<"Load Mesh : "<<argv[1]<<"\n";
     loadMesh(argv[1], dim); 
@@ -754,7 +754,7 @@ int main(int argc, char **argv) {
     /////////////
     /////////////
     std::cout << "nubbing pieces" << std::endl;
-    //addNubsToPieces();
+    addNubsToPieces();
     g_voxelGrid->updatePiecesFromPuzzle(g_puzzle);
     /////////////
     /////////////
